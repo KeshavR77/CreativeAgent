@@ -574,16 +574,24 @@ graph. Both CLIs smoke-run keyless (`env -i`): the A/B report emits `mock runs=2
 mean=0.505 …`, the calibration report emits verdict base rates + per-criterion
 histograms. **DoD met** — harnesses run keyless (mock arms) and, with keys, the real arms.
 
-### Known forward-compat warning (not a Stage-10 deliverable)
-LangGraph logs `Deserializing unregistered type app.models.artifacts.* … blocked in a
-future version` whenever a checkpoint with our pydantic artifacts is read back
-(`aget_state`). Harmless today; a future LangGraph will require registering those
-types (`allowed_msgpack_modules` / a serde registration). Flagged as a follow-up.
+### LangGraph msgpack forward-compat warning — RESOLVED
+LangGraph used to log `Deserializing unregistered type app.models.artifacts.* … blocked
+in a future version` on every checkpoint read (`aget_state`/resume). Fixed in
+`app/storage/checkpoint.py`: `open_checkpointer()` sets the saver's serde to a
+`JsonPlusSerializer(allowed_msgpack_modules=…)` whose allowlist is **introspected** from
+`app.models.artifacts` (every `BaseModel`/`Enum`, so a new artifact can't be forgotten).
+The allowlist is complete because those artifact models are the only non-LangGraph-safe
+types the graph checkpoints — which is exactly why they were the only types that warned.
+All checkpointer sites (lifespan + both eval scripts + the test fixtures) go through the
+one helper. Note: a specific allowlist makes any *missed* type silently deserialize to a
+raw dict (not an error), so `test_checkpoint_serde.py` round-trips a fully-nested Direction
+and asserts every nested value comes back as its model type; the whole graph/restart suite
+runs through the serde too. A keyless `ab_divergence` run now emits 0 msgpack warnings.
 
 ---
 
 ## Build status: all 10 stages complete
-Stages 01–10 are built on `main`. `make test` → backend 251 + frontend 58;
+Stages 01–10 are built on `main`. `make test` → backend 254 + frontend 58;
 `make e2e` + `make demo` exit 0; zero-keys-to-boot holds; `grep sk-` clean;
 `data/` + `.env` untracked.
 

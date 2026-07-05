@@ -42,9 +42,8 @@ BRIEF = Brief(
 
 
 async def _collect_runs(n: int, tmpdir: str):
-    from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
-
     from app.graph.runner import RunManager
+    from app.storage.checkpoint import open_checkpointer
     from app.storage.db import init_db, make_engine, make_sessionmaker
     from app.storage.repo import EventBus, EventRepo, RegistryRepo
 
@@ -54,7 +53,7 @@ async def _collect_runs(n: int, tmpdir: str):
     registry = RegistryRepo(sm)
     bus = EventBus()
     events = EventRepo(sm, bus)
-    async with AsyncSqliteSaver.from_conn_string(f"{tmpdir}/graph.sqlite") as saver:
+    async with open_checkpointer(f"{tmpdir}/graph.sqlite") as saver:
         rm = RunManager(registry, events, bus, saver)
         views = []
         for i in range(n):

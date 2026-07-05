@@ -10,9 +10,9 @@ from __future__ import annotations
 import contextlib
 
 import pytest_asyncio
-from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
 from app.graph.runner import RunManager
+from app.storage.checkpoint import open_checkpointer
 from app.models.artifacts import Brief
 from app.models.events import RunState
 from app.storage.db import init_db, make_engine, make_sessionmaker
@@ -38,7 +38,7 @@ async def restartable(tmp_path, clean_env):
 
     @contextlib.asynccontextmanager
     async def make_manager():
-        async with AsyncSqliteSaver.from_conn_string(graph_db) as saver:
+        async with open_checkpointer(graph_db) as saver:
             yield RunManager(registry, events, bus, saver)
 
     yield make_manager, registry

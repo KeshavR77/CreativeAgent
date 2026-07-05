@@ -42,13 +42,12 @@ async def lifespan(app: FastAPI):
 
     # LangGraph checkpointer — a long-lived AsyncSqliteSaver kept open for the
     # whole app lifetime via an AsyncExitStack.
-    from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
-
     from app.graph.runner import RunManager
+    from app.storage.checkpoint import open_checkpointer
 
     async with AsyncExitStack() as stack:
         saver = await stack.enter_async_context(
-            AsyncSqliteSaver.from_conn_string(str(DATA_DIR / "graph.sqlite"))
+            open_checkpointer(str(DATA_DIR / "graph.sqlite"))
         )
         run_manager = RunManager(registry, events, bus, saver)
 

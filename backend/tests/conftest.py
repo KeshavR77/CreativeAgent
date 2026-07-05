@@ -80,9 +80,8 @@ async def graph_manager(tmp_path, clean_env):
 
     Yields ``(run_manager, registry)``.
     """
-    from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
-
     from app.graph.runner import RunManager
+    from app.storage.checkpoint import open_checkpointer
     from app.storage.db import init_db, make_engine, make_sessionmaker
     from app.storage.repo import EventBus, EventRepo, RegistryRepo
 
@@ -92,5 +91,5 @@ async def graph_manager(tmp_path, clean_env):
     bus = EventBus()
     registry = RegistryRepo(sm)
     events = EventRepo(sm, bus)
-    async with AsyncSqliteSaver.from_conn_string(f"{tmp_path}/graph.sqlite") as saver:
+    async with open_checkpointer(f"{tmp_path}/graph.sqlite") as saver:
         yield RunManager(registry, events, bus, saver), registry

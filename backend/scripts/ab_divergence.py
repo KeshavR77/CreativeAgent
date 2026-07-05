@@ -86,9 +86,8 @@ def _default_arms(ambient: dict) -> list[str]:
 
 async def _run_arm_isolated(arm: str, n: int, tmpdir: str):
     # Local imports so building storage happens AFTER the arm's env is configured.
-    from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
-
     from app.graph.runner import RunManager
+    from app.storage.checkpoint import open_checkpointer
     from app.storage.db import init_db, make_engine, make_sessionmaker
     from app.storage.repo import EventBus, EventRepo, RegistryRepo
 
@@ -98,7 +97,7 @@ async def _run_arm_isolated(arm: str, n: int, tmpdir: str):
     registry = RegistryRepo(sm)
     bus = EventBus()
     events = EventRepo(sm, bus)
-    async with AsyncSqliteSaver.from_conn_string(f"{tmpdir}/graph.sqlite") as saver:
+    async with open_checkpointer(f"{tmpdir}/graph.sqlite") as saver:
         rm = RunManager(registry, events, bus, saver)
         return await run_arm(rm, arm, BRIEF, n)
 
