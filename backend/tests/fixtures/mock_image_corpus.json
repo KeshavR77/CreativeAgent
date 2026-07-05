@@ -1,0 +1,16 @@
+[
+  {
+    "id": "img_0001",
+    "provider": "mock",
+    "url": "https://example.com/img/0001.jpg",
+    "tags": ["running", "nature"],
+    "description": "A runner on a forest trail at dawn."
+  },
+  {
+    "id": "img_0002",
+    "provider": "mock",
+    "url": "https://example.com/img/0002.jpg",
+    "tags": ["sneaker", "studio"],
+    "description": "A minimalist sneaker product shot on a neutral background."
+  }
+]

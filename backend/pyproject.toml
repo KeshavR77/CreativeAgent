@@ -1,0 +1,41 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "creative-agency-backend"
+version = "0.1.0"
+description = "AI Creative Agency Platform — backend (FastAPI + LangGraph)."
+requires-python = ">=3.12"
+dependencies = [
+    "langgraph>=1.0,<2",
+    "langgraph-checkpoint-sqlite",
+    "langchain-core>=1.0,<2",
+    "langchain-anthropic>=1,<2",
+    "fastapi",
+    "uvicorn",
+    "sqlalchemy>=2,<3",
+    "pydantic-settings",
+    "httpx",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "httpx",
+    "ruff",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+filterwarnings = [
+    # `copy` is a contract field name (divergence reads copy.headline; export has a
+    # Copy section). It shadows pydantic v2's deprecated BaseModel.copy() — cosmetic
+    # only; model_copy() is the v2 replacement. Silence just this message.
+    'ignore:Field name "copy".*shadows an attribute:UserWarning',
+]
