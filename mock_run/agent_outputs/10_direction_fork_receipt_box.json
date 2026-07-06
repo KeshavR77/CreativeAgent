@@ -1,0 +1,221 @@
+{
+  "id": "dir-9e61b47d20",
+  "territory": {
+    "label": "The Receipt",
+    "lens": "itemized, audited transparency — every claim carries its number",
+    "description": "Treat the shoe like an invoice: publish the complete bill of materials, emissions and costs, and make checking the brand's work the core brand ritual."
+  },
+  "big_idea": "The Receipt Box: the shoebox is printed inside and out as the shoe's full audited receipt — unboxing is the audit, and the box mails back as the prepaid return label for end-of-life recovery.",
+  "brain": "conceptial",
+  "art_direction": {
+    "mood_descriptors": [
+      "tactile",
+      "utilitarian",
+      "documentary"
+    ],
+    "imagery_direction": "Packaging-first photography: the open box as hero, lid interior dense with itemized data rows, shoe secondary; flat craft-paper textures and hard top light.",
+    "layout_notes": "Everything reads as printed matter: rubber-stamp marks, perforation lines, fold guides; the lid is the layout grid.",
+    "palette": [
+      {
+        "name": "Kraft Brown",
+        "hex": "#8A6B4D",
+        "role": "primary"
+      },
+      {
+        "name": "Ink Black",
+        "hex": "#1C1C1C",
+        "role": "text"
+      },
+      {
+        "name": "Stamp Red",
+        "hex": "#B5341F",
+        "role": "accent"
+      },
+      {
+        "name": "Paper White",
+        "hex": "#F7F4EE",
+        "role": "background"
+      }
+    ],
+    "typography": [
+      {
+        "role": "heading",
+        "family": "IBM Plex Mono",
+        "fallback": "monospace",
+        "weights": [
+          "600"
+        ]
+      },
+      {
+        "role": "body",
+        "family": "Inter",
+        "fallback": "sans-serif",
+        "weights": [
+          "400"
+        ]
+      }
+    ],
+    "moodboard": [
+      {
+        "kind": "generated",
+        "url": "/generated/f4b7c21e9d3a4c65a8b90e7d5f13c2ab/dir-9e61b47d20/1954ee8756d345521d54113f3bfcfc1b.png",
+        "provider": "fal",
+        "license": "AI-generated",
+        "gen_model": "flux/schnell",
+        "gen_prompt": "moodboard tile — Packaging-first photography: the open box as hero, lid interior dense with itemized data rows, shoe secondary; flat craft-paper textures and hard top light.; mood: tactile, utilitarian, documentary; palette #8A6B4D, #1C1C1C, #B5341F, #F7F4EE; variation 1; no brand names, no logos, no legible text",
+        "source_url": null,
+        "attribution": null,
+        "caption": null
+      },
+      {
+        "kind": "sourced",
+        "url": "https://example.com/photos/kraft-box-flatlay.jpg",
+        "provider": "pexels",
+        "license": "Pexels License",
+        "gen_model": null,
+        "gen_prompt": null,
+        "source_url": "https://example.com/photos/kraft-box-flatlay",
+        "attribution": "Noor Haddad",
+        "caption": "Flat lay of kraft shipping boxes with printed interior lids."
+      },
+      {
+        "kind": "sourced",
+        "url": "https://example.com/photos/stamp-ink.jpg",
+        "provider": "pexels",
+        "license": "Pexels License",
+        "gen_model": null,
+        "gen_prompt": null,
+        "source_url": "https://example.com/photos/stamp-ink",
+        "attribution": "Tomás Vega",
+        "caption": "Rubber stamp and ink pad on ledger paper."
+      },
+      {
+        "kind": "generated",
+        "url": "/generated/f4b7c21e9d3a4c65a8b90e7d5f13c2ab/dir-9e61b47d20/a95caeeb9646194716566331b226d406.png",
+        "provider": "fal",
+        "license": "AI-generated",
+        "gen_model": "flux/schnell",
+        "gen_prompt": "moodboard tile — Packaging-first photography: the open box as hero, lid interior dense with itemized data rows, shoe secondary; flat craft-paper textures and hard top light.; mood: tactile, utilitarian, documentary; palette #8A6B4D, #1C1C1C, #B5341F, #F7F4EE; variation 2; no brand names, no logos, no legible text",
+        "source_url": null,
+        "attribution": null,
+        "caption": null
+      },
+      {
+        "kind": "sourced",
+        "url": "https://example.com/photos/hangtag-data.jpg",
+        "provider": "pexels",
+        "license": "Pexels License",
+        "gen_model": null,
+        "gen_prompt": null,
+        "source_url": "https://example.com/photos/hangtag-data",
+        "attribution": "Fatima Noor",
+        "caption": "A hang-tag showing material provenance and lifecycle data."
+      },
+      {
+        "kind": "sourced",
+        "url": "https://example.com/photos/receipt-macro.jpg",
+        "provider": "pexels",
+        "license": "Pexels License",
+        "gen_model": null,
+        "gen_prompt": null,
+        "source_url": "https://example.com/photos/receipt-macro",
+        "attribution": "Priya Nair",
+        "caption": "Macro of a printed till receipt, shallow depth of field."
+      },
+      {
+        "kind": "generated",
+        "url": "/generated/f4b7c21e9d3a4c65a8b90e7d5f13c2ab/dir-9e61b47d20/945f8d669813eb72f541b8e00471a32d.png",
+        "provider": "fal",
+        "license": "AI-generated",
+        "gen_model": "flux/schnell",
+        "gen_prompt": "moodboard tile — Packaging-first photography: the open box as hero, lid interior dense with itemized data rows, shoe secondary; flat craft-paper textures and hard top light.; mood: tactile, utilitarian, documentary; palette #8A6B4D, #1C1C1C, #B5341F, #F7F4EE; variation 3; no brand names, no logos, no legible text",
+        "source_url": null,
+        "attribution": null,
+        "caption": null
+      },
+      {
+        "kind": "sourced",
+        "url": "https://example.com/photos/workbench-swatches.jpg",
+        "provider": "pexels",
+        "license": "Pexels License",
+        "gen_model": null,
+        "gen_prompt": null,
+        "source_url": "https://example.com/photos/workbench-swatches",
+        "attribution": "Jia Wong",
+        "caption": "Candid workshop bench with sustainable material swatches."
+      },
+      {
+        "kind": "sourced",
+        "url": "https://example.com/photos/tool-wall.jpg",
+        "provider": "pexels",
+        "license": "Pexels License",
+        "gen_model": null,
+        "gen_prompt": null,
+        "source_url": "https://example.com/photos/tool-wall",
+        "attribution": "Kofi Adjei",
+        "caption": "A tidy pegboard tool wall in a small workshop."
+      }
+    ]
+  },
+  "copy": {
+    "headline": "The box is the fine print.",
+    "subhead": "Every claim we make, printed where you can't miss it — then mail the box back and we take the shoe back too.",
+    "body": "Open the lid and you're holding the audit: materials, emissions, costs, misses, line by line. When the shoe is done, the box is the return label — send both back and we publish what we recovered.",
+    "taglines": [
+      "Unbox the audit."
+    ],
+    "cta": "Read the box"
+  },
+  "sketches": [
+    {
+      "kind": "generated",
+      "url": "/generated/f4b7c21e9d3a4c65a8b90e7d5f13c2ab/dir-9e61b47d20/7c8fd97c91ff40c89b6b2d4b1231aa01.png",
+      "provider": "fal",
+      "license": "AI-generated",
+      "gen_model": "flux/schnell",
+      "gen_prompt": "rough marker sketch exploring 'The Receipt Box: the shoebox is printed inside and out as the shoe's full audited receipt — unboxing is the audit, and the box mails back as the prepaid return label for end-of-life recovery.' through the lens of itemized, audited transparency — every claim carries its number; no brand names, no logos, no legible text in the image",
+      "source_url": null,
+      "attribution": null,
+      "caption": null
+    },
+    {
+      "kind": "generated",
+      "url": "/generated/f4b7c21e9d3a4c65a8b90e7d5f13c2ab/dir-9e61b47d20/0e176ae5c7562b49b5124bfa5cf91f3a.png",
+      "provider": "fal",
+      "license": "AI-generated",
+      "gen_model": "flux/schnell",
+      "gen_prompt": "quick concept thumbnail exploring 'The Receipt Box: the shoebox is printed inside and out as the shoe's full audited receipt — unboxing is the audit, and the box mails back as the prepaid return label for end-of-life recovery.' through the lens of itemized, audited transparency — every claim carries its number; no brand names, no logos, no legible text in the image",
+      "source_url": null,
+      "attribution": null,
+      "caption": null
+    },
+    {
+      "kind": "generated",
+      "url": "/generated/f4b7c21e9d3a4c65a8b90e7d5f13c2ab/dir-9e61b47d20/7817356c37ddd16d442c7108b880e2f4.png",
+      "provider": "fal",
+      "license": "AI-generated",
+      "gen_model": "flux/schnell",
+      "gen_prompt": "loose ink gesture drawing exploring 'The Receipt Box: the shoebox is printed inside and out as the shoe's full audited receipt — unboxing is the audit, and the box mails back as the prepaid return label for end-of-life recovery.' through the lens of itemized, audited transparency — every claim carries its number; no brand names, no logos, no legible text in the image",
+      "source_url": null,
+      "attribution": null,
+      "caption": null
+    }
+  ],
+  "critique": {
+    "distinctiveness": 4,
+    "strategic_fit": 3,
+    "memorability": 4,
+    "audience_resonance": 3,
+    "feasibility": 4,
+    "case_against": "A packaging execution masquerading as a brand platform: the box is a delightful first touch, but it says nothing on foot, on the run, or at a retail wall where boxes are discarded, and the parent direction already owns the receipt idea in a place runners actually see daily. Unboxing theater also sits uneasily with an anti-waste story — the more the box matters, the more material and print the brand ships — and mail-back return logistics duplicate the rebuild territory's burdens without its payoff. Kill it or fold its best beat, the return-label lid, into the parent.",
+    "verdict": "revise",
+    "critic_model": "claude-opus-4-1"
+  },
+  "critique_stale": false,
+  "divergence_score": 0.42,
+  "status": "draft",
+  "annotations": [],
+  "parent_id": "dir-4c9e2a71b3",
+  "merged_from": [],
+  "lens_tweak": "make the shoebox itself the receipt — unboxing as audit"
+}

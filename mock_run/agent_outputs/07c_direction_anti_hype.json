@@ -1,0 +1,231 @@
+{
+  "id": "dir-b3e94d10fa",
+  "territory": {
+    "label": "Anti-Hype",
+    "lens": "strip the marketing away — mud, sweat and plain talk",
+    "description": "The brand that refuses launch theater: no ads, no gloss, no influencer seeding — let unedited runners and raw results carry the story."
+  },
+  "big_idea": "The Unlaunch: the brand ships with zero advertising — no campaign, no influencers, no launch film. It appears only as plain-text race results, unedited shoe-repair logs, and a homepage that is a live spreadsheet of everything the company spent and emitted that month.",
+  "brain": "conceptial",
+  "art_direction": {
+    "mood_descriptors": [
+      "raw",
+      "unpolished",
+      "candid",
+      "defiant"
+    ],
+    "imagery_direction": "Deliberately unproduced imagery: runners' own phone photos, mud-caked shoes on doormats, screenshot-quality plainness; the only designed object is the spreadsheet itself.",
+    "layout_notes": "Default-looking on purpose: system-font look, visible table borders, underlined links; resist all decoration except one warm accent.",
+    "palette": [
+      {
+        "name": "Spreadsheet White",
+        "hex": "#FFFFFF",
+        "role": "background"
+      },
+      {
+        "name": "System Black",
+        "hex": "#111111",
+        "role": "primary"
+      },
+      {
+        "name": "Hyperlink Blue",
+        "hex": "#1A0DAB",
+        "role": "accent"
+      },
+      {
+        "name": "Mud Brown",
+        "hex": "#6B4A2F",
+        "role": "texture"
+      }
+    ],
+    "typography": [
+      {
+        "role": "heading",
+        "family": "Arial",
+        "fallback": "sans-serif",
+        "weights": [
+          "700"
+        ]
+      },
+      {
+        "role": "body",
+        "family": "Arial",
+        "fallback": "sans-serif",
+        "weights": [
+          "400"
+        ]
+      },
+      {
+        "role": "data",
+        "family": "Courier New",
+        "fallback": "monospace",
+        "weights": [
+          "400"
+        ]
+      }
+    ],
+    "moodboard": [
+      {
+        "kind": "generated",
+        "url": "/generated/f4b7c21e9d3a4c65a8b90e7d5f13c2ab/dir-b3e94d10fa/c6a62f4f10395949257f88638d2732a7.png",
+        "provider": "fal",
+        "license": "AI-generated",
+        "gen_model": "flux/schnell",
+        "gen_prompt": "moodboard tile — Deliberately unproduced imagery: runners' own phone photos, mud-caked shoes on doormats, screenshot-quality plainness; the only designed object is the spreadsheet itself.; mood: raw, unpolished, candid, defiant; palette #FFFFFF, #111111, #1A0DAB, #6B4A2F; variation 1; no brand names, no logos, no legible text",
+        "source_url": null,
+        "attribution": null,
+        "caption": null
+      },
+      {
+        "kind": "sourced",
+        "url": "https://example.com/photos/muddy-doormat.jpg",
+        "provider": "pexels",
+        "license": "Pexels License",
+        "gen_model": null,
+        "gen_prompt": null,
+        "source_url": "https://example.com/photos/muddy-doormat",
+        "attribution": "Lena Farah",
+        "caption": "Mud-caked running shoes drying on a doormat, phone-photo quality."
+      },
+      {
+        "kind": "sourced",
+        "url": "https://example.com/photos/race-results.jpg",
+        "provider": "pexels",
+        "license": "Pexels License",
+        "gen_model": null,
+        "gen_prompt": null,
+        "source_url": "https://example.com/photos/race-results",
+        "attribution": "Ivan Costa",
+        "caption": "A printed race-results sheet taped to a community board."
+      },
+      {
+        "kind": "generated",
+        "url": "/generated/f4b7c21e9d3a4c65a8b90e7d5f13c2ab/dir-b3e94d10fa/e97a3b0be2befeaa56b3c2288c7f7222.png",
+        "provider": "fal",
+        "license": "AI-generated",
+        "gen_model": "flux/schnell",
+        "gen_prompt": "moodboard tile — Deliberately unproduced imagery: runners' own phone photos, mud-caked shoes on doormats, screenshot-quality plainness; the only designed object is the spreadsheet itself.; mood: raw, unpolished, candid, defiant; palette #FFFFFF, #111111, #1A0DAB, #6B4A2F; variation 2; no brand names, no logos, no legible text",
+        "source_url": null,
+        "attribution": null,
+        "caption": null
+      },
+      {
+        "kind": "sourced",
+        "url": "https://example.com/photos/spreadsheet-screen.jpg",
+        "provider": "pexels",
+        "license": "Pexels License",
+        "gen_model": null,
+        "gen_prompt": null,
+        "source_url": "https://example.com/photos/spreadsheet-screen",
+        "attribution": "Ada Lin",
+        "caption": "A laptop screen showing a dense spreadsheet, candid office light."
+      },
+      {
+        "kind": "sourced",
+        "url": "https://example.com/photos/runner-wet-asphalt.jpg",
+        "provider": "pexels",
+        "license": "Pexels License",
+        "gen_model": null,
+        "gen_prompt": null,
+        "source_url": "https://example.com/photos/runner-wet-asphalt",
+        "attribution": "Erik Sund",
+        "caption": "A runner mid-stride on wet asphalt under overcast light."
+      },
+      {
+        "kind": "generated",
+        "url": "/generated/f4b7c21e9d3a4c65a8b90e7d5f13c2ab/dir-b3e94d10fa/fa489758598054e7e1c0ab84b6e8eb95.png",
+        "provider": "fal",
+        "license": "AI-generated",
+        "gen_model": "flux/schnell",
+        "gen_prompt": "moodboard tile — Deliberately unproduced imagery: runners' own phone photos, mud-caked shoes on doormats, screenshot-quality plainness; the only designed object is the spreadsheet itself.; mood: raw, unpolished, candid, defiant; palette #FFFFFF, #111111, #1A0DAB, #6B4A2F; variation 3; no brand names, no logos, no legible text",
+        "source_url": null,
+        "attribution": null,
+        "caption": null
+      },
+      {
+        "kind": "sourced",
+        "url": "https://example.com/photos/dawn-street-runner.jpg",
+        "provider": "pexels",
+        "license": "Pexels License",
+        "gen_model": null,
+        "gen_prompt": null,
+        "source_url": "https://example.com/photos/dawn-street-runner",
+        "attribution": "Marta Silva",
+        "caption": "An urban runner crossing an empty morning street at dawn."
+      },
+      {
+        "kind": "sourced",
+        "url": "https://example.com/photos/workbench-swatches.jpg",
+        "provider": "pexels",
+        "license": "Pexels License",
+        "gen_model": null,
+        "gen_prompt": null,
+        "source_url": "https://example.com/photos/workbench-swatches",
+        "attribution": "Jia Wong",
+        "caption": "Candid workshop bench with sustainable material swatches."
+      }
+    ]
+  },
+  "copy": {
+    "headline": "We spent the ad budget on the shoe.",
+    "subhead": "No campaign. No launch film. A spreadsheet, a shoe, and whatever runners say about it.",
+    "body": "Every marketing dollar is a dollar that didn't go into the midsole, so we cut the category's biggest emission first: the hype. Our homepage is the company ledger, our campaign photography is whatever your phone shot at mile nine, and our launch event is a race we didn't sponsor.",
+    "taglines": [
+      "No ads. Just receipts.",
+      "Marketing is the first emission we cut."
+    ],
+    "cta": "Open the spreadsheet"
+  },
+  "sketches": [
+    {
+      "kind": "generated",
+      "url": "/generated/f4b7c21e9d3a4c65a8b90e7d5f13c2ab/dir-b3e94d10fa/a4003fa087c9bd42482ba80fa64885c1.png",
+      "provider": "fal",
+      "license": "AI-generated",
+      "gen_model": "flux/schnell",
+      "gen_prompt": "rough marker sketch exploring 'The Unlaunch: the brand ships with zero advertising — no campaign, no influencers, no launch film. It appears only as plain-text race results, unedited shoe-repair logs, and a homepage that is a live spreadsheet of everything the company spent and emitted that month.' through the lens of strip the marketing away — mud, sweat and plain talk; no brand names, no logos, no legible text in the image",
+      "source_url": null,
+      "attribution": null,
+      "caption": null
+    },
+    {
+      "kind": "generated",
+      "url": "/generated/f4b7c21e9d3a4c65a8b90e7d5f13c2ab/dir-b3e94d10fa/aad6e213eb4af3fb25580559b6a257ed.png",
+      "provider": "fal",
+      "license": "AI-generated",
+      "gen_model": "flux/schnell",
+      "gen_prompt": "quick concept thumbnail exploring 'The Unlaunch: the brand ships with zero advertising — no campaign, no influencers, no launch film. It appears only as plain-text race results, unedited shoe-repair logs, and a homepage that is a live spreadsheet of everything the company spent and emitted that month.' through the lens of strip the marketing away — mud, sweat and plain talk; no brand names, no logos, no legible text in the image",
+      "source_url": null,
+      "attribution": null,
+      "caption": null
+    },
+    {
+      "kind": "generated",
+      "url": "/generated/f4b7c21e9d3a4c65a8b90e7d5f13c2ab/dir-b3e94d10fa/476c673057c29013267056273e01500c.png",
+      "provider": "fal",
+      "license": "AI-generated",
+      "gen_model": "flux/schnell",
+      "gen_prompt": "loose ink gesture drawing exploring 'The Unlaunch: the brand ships with zero advertising — no campaign, no influencers, no launch film. It appears only as plain-text race results, unedited shoe-repair logs, and a homepage that is a live spreadsheet of everything the company spent and emitted that month.' through the lens of strip the marketing away — mud, sweat and plain talk; no brand names, no logos, no legible text in the image",
+      "source_url": null,
+      "attribution": null,
+      "caption": null
+    }
+  ],
+  "critique": {
+    "distinctiveness": 4,
+    "strategic_fit": 3,
+    "memorability": 3,
+    "audience_resonance": 3,
+    "feasibility": 2,
+    "case_against": "Anti-marketing is itself a well-worn marketing trope, so the pose reads as knowing rather than honest, and a seed-stage brand with zero paid reach has no mechanism to be discovered at all — an unlaunch by an unknown is indistinguishable from silence. The spreadsheet homepage entertains insiders but taxes conversion for everyone else, and the concept says almost nothing about the shoe itself: it is a media strategy wearing a brand strategy's clothes, and it collapses the moment the company runs its first promotion.",
+    "verdict": "revise",
+    "critic_model": "claude-opus-4-1"
+  },
+  "critique_stale": false,
+  "divergence_score": 0.51,
+  "status": "draft",
+  "annotations": [],
+  "parent_id": null,
+  "merged_from": [],
+  "lens_tweak": null
+}

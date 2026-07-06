@@ -1,0 +1,238 @@
+{
+  "id": "dir-4c9e2a71b3",
+  "territory": {
+    "label": "The Receipt",
+    "lens": "itemized, audited transparency — every claim carries its number",
+    "description": "Treat the shoe like an invoice: publish the complete bill of materials, emissions and costs, and make checking the brand's work the core brand ritual."
+  },
+  "big_idea": "The Receipt Shoe: every pair ships with its itemized, third-party-audited footprint — 4.9 kg CO2e, 61% recycled-content upper, zero offsets purchased — printed on the tongue and living at a public URL that updates when the numbers do.",
+  "brain": "conceptial",
+  "art_direction": {
+    "mood_descriptors": [
+      "forensic",
+      "plainspoken",
+      "precise",
+      "unretouched"
+    ],
+    "imagery_direction": "Forensic product macro photography under flat, even light: materials shot like lab evidence with their line-item data set beside them; no lifestyle gloss, nothing hidden in shadow.",
+    "layout_notes": "Invoice logic: strict column grid, tabular numerals, generous white margins; data rows set flush like a till receipt with a single accent rule.",
+    "palette": [
+      {
+        "name": "Ledger Black",
+        "hex": "#1B1B1B",
+        "role": "primary"
+      },
+      {
+        "name": "Receipt White",
+        "hex": "#FAFAF5",
+        "role": "background"
+      },
+      {
+        "name": "Audit Blue",
+        "hex": "#2B4C7E",
+        "role": "accent"
+      },
+      {
+        "name": "Correction Red",
+        "hex": "#C6482E",
+        "role": "signal"
+      }
+    ],
+    "typography": [
+      {
+        "role": "heading",
+        "family": "IBM Plex Mono",
+        "fallback": "monospace",
+        "weights": [
+          "600"
+        ]
+      },
+      {
+        "role": "body",
+        "family": "Inter",
+        "fallback": "sans-serif",
+        "weights": [
+          "400",
+          "500"
+        ]
+      },
+      {
+        "role": "data",
+        "family": "IBM Plex Mono",
+        "fallback": "monospace",
+        "weights": [
+          "400"
+        ]
+      }
+    ],
+    "moodboard": [
+      {
+        "kind": "generated",
+        "url": "/generated/f4b7c21e9d3a4c65a8b90e7d5f13c2ab/dir-4c9e2a71b3/f8dc8327a9648af2d9b6824c4e151cd4.png",
+        "provider": "fal",
+        "license": "AI-generated",
+        "gen_model": "flux/schnell",
+        "gen_prompt": "moodboard tile — Forensic product macro photography under flat, even light: materials shot like lab evidence with their line-item data set beside them; no lifestyle gloss, nothing hidden in shadow.; mood: forensic, plainspoken, precise, unretouched; palette #1B1B1B, #FAFAF5, #2B4C7E, #C6482E; variation 1; no brand names, no logos, no legible text",
+        "source_url": null,
+        "attribution": null,
+        "caption": null
+      },
+      {
+        "kind": "sourced",
+        "url": "https://example.com/photos/receipt-macro.jpg",
+        "provider": "pexels",
+        "license": "Pexels License",
+        "gen_model": null,
+        "gen_prompt": null,
+        "source_url": "https://example.com/photos/receipt-macro",
+        "attribution": "Priya Nair",
+        "caption": "Macro of a printed till receipt, shallow depth of field."
+      },
+      {
+        "kind": "sourced",
+        "url": "https://example.com/photos/rubber-crumb.jpg",
+        "provider": "pexels",
+        "license": "Pexels License",
+        "gen_model": null,
+        "gen_prompt": null,
+        "source_url": "https://example.com/photos/rubber-crumb",
+        "attribution": "Chidi Okafor",
+        "caption": "Close-up of recycled rubber crumb and knit textile texture."
+      },
+      {
+        "kind": "generated",
+        "url": "/generated/f4b7c21e9d3a4c65a8b90e7d5f13c2ab/dir-4c9e2a71b3/786d670af00a03e22ccab5dfc26c94f9.png",
+        "provider": "fal",
+        "license": "AI-generated",
+        "gen_model": "flux/schnell",
+        "gen_prompt": "moodboard tile — Forensic product macro photography under flat, even light: materials shot like lab evidence with their line-item data set beside them; no lifestyle gloss, nothing hidden in shadow.; mood: forensic, plainspoken, precise, unretouched; palette #1B1B1B, #FAFAF5, #2B4C7E, #C6482E; variation 2; no brand names, no logos, no legible text",
+        "source_url": null,
+        "attribution": null,
+        "caption": null
+      },
+      {
+        "kind": "generated",
+        "url": "/generated/f4b7c21e9d3a4c65a8b90e7d5f13c2ab/dir-4c9e2a71b3/ae599ac3e0fa10f019cd4299ab3b8105.png",
+        "provider": "fal",
+        "license": "AI-generated",
+        "gen_model": "flux/schnell",
+        "gen_prompt": "moodboard tile — single till-receipt row of type-and-number texture rendered as abstract pattern, flat even light; palette #1B1B1B, #FAFAF5, #2B4C7E; no brand names, no logos, no legible text",
+        "source_url": null,
+        "attribution": null,
+        "caption": null
+      },
+      {
+        "kind": "sourced",
+        "url": "https://example.com/photos/workbench-swatches.jpg",
+        "provider": "pexels",
+        "license": "Pexels License",
+        "gen_model": null,
+        "gen_prompt": null,
+        "source_url": "https://example.com/photos/workbench-swatches",
+        "attribution": "Jia Wong",
+        "caption": "Candid workshop bench with sustainable material swatches."
+      },
+      {
+        "kind": "generated",
+        "url": "/generated/f4b7c21e9d3a4c65a8b90e7d5f13c2ab/dir-4c9e2a71b3/73dc90d04e3394d45a8cc470b4ed28b7.png",
+        "provider": "fal",
+        "license": "AI-generated",
+        "gen_model": "flux/schnell",
+        "gen_prompt": "moodboard tile — Forensic product macro photography under flat, even light: materials shot like lab evidence with their line-item data set beside them; no lifestyle gloss, nothing hidden in shadow.; mood: forensic, plainspoken, precise, unretouched; palette #1B1B1B, #FAFAF5, #2B4C7E, #C6482E; variation 3; no brand names, no logos, no legible text",
+        "source_url": null,
+        "attribution": null,
+        "caption": null
+      },
+      {
+        "kind": "sourced",
+        "url": "https://example.com/photos/caliper-foam.jpg",
+        "provider": "pexels",
+        "license": "Pexels License",
+        "gen_model": null,
+        "gen_prompt": null,
+        "source_url": "https://example.com/photos/caliper-foam",
+        "attribution": "Ben Ortiz",
+        "caption": "A steel caliper measuring a foam midsole sample."
+      },
+      {
+        "kind": "sourced",
+        "url": "https://example.com/photos/runner-wet-asphalt.jpg",
+        "provider": "pexels",
+        "license": "Pexels License",
+        "gen_model": null,
+        "gen_prompt": null,
+        "source_url": "https://example.com/photos/runner-wet-asphalt",
+        "attribution": "Erik Sund",
+        "caption": "A runner mid-stride on wet asphalt under overcast light."
+      }
+    ]
+  },
+  "copy": {
+    "headline": "Don't trust us. Read the tongue.",
+    "subhead": "Every pair publishes its audited footprint — materials, emissions, and the misses — where you can't avoid it.",
+    "body": "Most brands print a slogan on the tongue. We print the bill: 4.9 kg CO2e, 61% recycled upper, zero offsets, audited by people we can't fire. When a number improves, we update it. When it gets worse, we publish that too. You wouldn't train on vibes — don't buy on them either.",
+    "taglines": [
+      "Every claim has a number.",
+      "Audited. Itemized. Worn."
+    ],
+    "cta": "Pull the full receipt"
+  },
+  "sketches": [
+    {
+      "kind": "generated",
+      "url": "/generated/f4b7c21e9d3a4c65a8b90e7d5f13c2ab/dir-4c9e2a71b3/3402e45656640c8ed73b3c41a4978c26.png",
+      "provider": "fal",
+      "license": "AI-generated",
+      "gen_model": "flux/schnell",
+      "gen_prompt": "rough marker sketch exploring 'The Receipt Shoe: every pair ships with its itemized, third-party-audited footprint — 4.9 kg CO2e, 61% recycled-content upper, zero offsets purchased — printed on the tongue and living at a public URL that updates when the numbers do.' through the lens of itemized, audited transparency — every claim carries its number; no brand names, no logos, no legible text in the image",
+      "source_url": null,
+      "attribution": null,
+      "caption": null
+    },
+    {
+      "kind": "generated",
+      "url": "/generated/f4b7c21e9d3a4c65a8b90e7d5f13c2ab/dir-4c9e2a71b3/af8b1da5fca267b383b98d5129d5a08f.png",
+      "provider": "fal",
+      "license": "AI-generated",
+      "gen_model": "flux/schnell",
+      "gen_prompt": "quick concept thumbnail exploring 'The Receipt Shoe: every pair ships with its itemized, third-party-audited footprint — 4.9 kg CO2e, 61% recycled-content upper, zero offsets purchased — printed on the tongue and living at a public URL that updates when the numbers do.' through the lens of itemized, audited transparency — every claim carries its number; no brand names, no logos, no legible text in the image",
+      "source_url": null,
+      "attribution": null,
+      "caption": null
+    },
+    {
+      "kind": "generated",
+      "url": "/generated/f4b7c21e9d3a4c65a8b90e7d5f13c2ab/dir-4c9e2a71b3/548c44508cec22ba31c452adb408f6f3.png",
+      "provider": "fal",
+      "license": "AI-generated",
+      "gen_model": "flux/schnell",
+      "gen_prompt": "rough marker sketch of a shoe tongue as an itemized paper receipt, macro crop, rows of type suggested as abstract lines; no brand names, no logos, no legible text in the image",
+      "source_url": null,
+      "attribution": null,
+      "caption": null
+    }
+  ],
+  "critique": {
+    "distinctiveness": 5,
+    "strategic_fit": 5,
+    "memorability": 4,
+    "audience_resonance": 4,
+    "feasibility": 3,
+    "case_against": "The receipt mechanic lives or dies on the accuracy of its numbers: one methodology error or supplier misreport becomes a public correction that reads as the very greenwashing the brand attacks. Independent audits at seed-stage volumes are expensive and slow, per-SKU updates create real operational drag, and better-funded incumbents can copy carbon labeling faster than a startup can defend it. There is also a genuine risk the tongue-receipt reads as a gimmick after the first purchase, leaving little emotional residue to retain runners beyond the data itself.",
+    "verdict": "ship",
+    "critic_model": "claude-opus-4-1"
+  },
+  "critique_stale": false,
+  "divergence_score": 0.55,
+  "status": "draft",
+  "annotations": [
+    {
+      "text": "Strongest opening position of the three — the receipt is demonstrable in five seconds at retail and impossible for incumbents to copy without exposing themselves. Before this goes anywhere near production: legal review on publishing audited numbers, and a plan for the first bad number.",
+      "author": "keshav",
+      "at": null
+    }
+  ],
+  "parent_id": null,
+  "merged_from": [],
+  "lens_tweak": null
+}

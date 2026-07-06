@@ -1,0 +1,80 @@
+{
+  "sources": [
+    {
+      "title": "Consumer watchdog sweep finds most 'green' claims unverifiable",
+      "url": "https://example.com/research/green-claims-sweep-2025",
+      "snippet": "A cross-border review of environmental marketing found 53% of examined claims were vague, misleading or unfounded, with footwear among the most-flagged categories; forthcoming rules will require independent substantiation before publication.",
+      "query": "greenwashing regulation footwear claims"
+    },
+    {
+      "title": "Runner survey: sustainability matters, but nobody believes you",
+      "url": "https://example.com/research/runner-sustainability-survey",
+      "snippet": "Among 2,400 surveyed runners, 71% said sustainability influences shoe choice, yet only 18% said they trust brands' environmental claims; 64% ranked cushioning and injury prevention as non-negotiable.",
+      "query": "runners attitudes sustainable shoes trust"
+    },
+    {
+      "title": "The carbon label experiment: what Allbirds started and why it stalled",
+      "url": "https://example.com/research/carbon-label-experiment",
+      "snippet": "Per-product carbon labels raised awareness but not conversion on their own; analysts point to missing performance credibility and the absence of any verification ritual at the point of sale.",
+      "query": "carbon labeling footwear effectiveness"
+    },
+    {
+      "title": "Recycled-content claims under the microscope",
+      "url": "https://example.com/research/recycled-content-audits",
+      "snippet": "Third-party audits of recycled-content percentages in apparel found discrepancies of 10–30 points between marketing copy and supply-chain records in a third of sampled products.",
+      "query": "recycled content claim audit apparel"
+    },
+    {
+      "title": "Running shoe lifespan and replacement behavior",
+      "url": "https://example.com/research/shoe-replacement-cycles",
+      "snippet": "Most runners replace primary trainers every 300–500 miles — two to four pairs a year for high-mileage runners — making footwear one of running's largest recurring waste streams.",
+      "query": "running shoe replacement miles waste"
+    }
+  ],
+  "competitors": [
+    {
+      "name": "Allbirds",
+      "note": "Pioneered per-shoe carbon labeling and open-sourced its carbon calculator, but post-IPO growth stalled — proof that a sustainability story alone does not retain performance runners.",
+      "source": {
+        "title": "The carbon label experiment: what Allbirds started and why it stalled",
+        "url": "https://example.com/research/carbon-label-experiment",
+        "snippet": "Per-product carbon labels raised awareness but not conversion on their own.",
+        "query": "carbon labeling footwear effectiveness"
+      }
+    },
+    {
+      "name": "Veja",
+      "note": "Built a cult following on radical supply-chain transparency and zero advertising; weak in performance running specifically — its runner base is lifestyle-first.",
+      "source": null
+    },
+    {
+      "name": "On Running",
+      "note": "Cyclon subscription fully recycles the Cloudneo, but the subscription model confuses ownership-minded buyers and sustainability messaging sits far behind performance in the brand hierarchy.",
+      "source": null
+    },
+    {
+      "name": "Nike",
+      "note": "'Move to Zero' delivers scale but draws recurring vagueness criticism — exactly the credibility gap a proof-first challenger can attack.",
+      "source": null
+    }
+  ],
+  "audience_notes": [
+    {
+      "insight": "Runners replace shoes every 300–500 miles, so the waste problem recurs two to four times a year for the core audience — the guilt is chronic, not abstract.",
+      "source": null
+    },
+    {
+      "insight": "Cushioning, injury prevention and durability consistently outrank sustainability; green credentials act as a tiebreaker between comparable shoes, never a substitute for performance.",
+      "source": null
+    },
+    {
+      "insight": "The audience is unusually data-literate — training logs, splits, VO2max — and responds to numbers and audits while punishing adjectives without evidence.",
+      "source": null
+    },
+    {
+      "insight": "Distrust is the default: most surveyed consumers say they cannot tell which green claims are true, and runners cite recycled-content percentages hidden in fine print as a specific trigger.",
+      "source": null
+    }
+  ],
+  "summary": "The category's credibility gap is the opportunity: regulators are formalizing what runners already believe — that most green claims cannot be checked. Incumbents either lead with vague language (attackable) or bury genuine proof (forgettable). A brand that makes verification itself the product experience — numbers, audits, receipts — converts default skepticism into the purchase trigger, provided performance is proven first and every published number survives scrutiny."
+}

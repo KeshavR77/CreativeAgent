@@ -1,0 +1,147 @@
+{
+  "gate": "curation",
+  "directions": [
+    {
+      "id": "dir-4c9e2a71b3",
+      "big_idea": "The Receipt Shoe: every pair ships with its itemized, third-party-audited footprint — 4.9 kg CO2e, 61% recycled-content upper, zero offsets purchased — printed on the tongue and living at a public URL that updates when the numbers do.",
+      "headline": "Don't trust us. Read the tongue.",
+      "brain": "conceptial",
+      "status": "merged_away",
+      "critique_stale": false,
+      "divergence_score": 0.49,
+      "critique": {
+        "distinctiveness": 5,
+        "strategic_fit": 5,
+        "memorability": 4,
+        "audience_resonance": 4,
+        "feasibility": 3,
+        "case_against": "The receipt mechanic lives or dies on the accuracy of its numbers: one methodology error or supplier misreport becomes a public correction that reads as the very greenwashing the brand attacks. Independent audits at seed-stage volumes are expensive and slow, per-SKU updates create real operational drag, and better-funded incumbents can copy carbon labeling faster than a startup can defend it. There is also a genuine risk the tongue-receipt reads as a gimmick after the first purchase, leaving little emotional residue to retain runners beyond the data itself.",
+        "verdict": "ship",
+        "critic_model": "claude-opus-4-1"
+      },
+      "annotations": [
+        {
+          "text": "Strongest opening position of the three — the receipt is demonstrable in five seconds at retail and impossible for incumbents to copy without exposing themselves. Before this goes anywhere near production: legal review on publishing audited numbers, and a plan for the first bad number.",
+          "author": "keshav",
+          "at": null
+        }
+      ],
+      "parent_id": null,
+      "merged_from": []
+    },
+    {
+      "id": "dir-8d17f0a2c5",
+      "big_idea": "Mile 501: a running shoe engineered as a chassis with replaceable wear parts — outsole, midsole core, laces — so at mile 500 you order a rebuild kit, not a new shoe, and the odometer keeps counting.",
+      "headline": "Stop buying new shoes.",
+      "brain": "claude_high_temp",
+      "status": "merged_away",
+      "critique_stale": false,
+      "divergence_score": 0.62,
+      "critique": {
+        "distinctiveness": 4,
+        "strategic_fit": 4,
+        "memorability": 5,
+        "audience_resonance": 4,
+        "feasibility": 3,
+        "case_against": "'Stop buying new shoes.' buys memorability by declaring war on the replacement economics every running retailer depends on — expect wholesale resistance at launch. The modular joints still add mass at the midsole interface where runners are most sensitive, rebuild-kit reverse logistics remain heavy for a seed-stage team, and the mile-500 trigger still assumes disciplined mileage tracking. The concept also now leans harder on a claim — a halved footprint per rebuilt cycle — that must survive an independent audit before it can ever be printed.",
+        "verdict": "ship",
+        "critic_model": "claude-opus-4-1"
+      },
+      "annotations": [],
+      "parent_id": null,
+      "merged_from": []
+    },
+    {
+      "id": "dir-b3e94d10fa",
+      "big_idea": "The Unlaunch: the brand ships with zero advertising — no campaign, no influencers, no launch film. It appears only as plain-text race results, unedited shoe-repair logs, and a homepage that is a live spreadsheet of everything the company spent and emitted that month.",
+      "headline": "The ad budget is in the midsole.",
+      "brain": "conceptial",
+      "status": "killed",
+      "critique_stale": true,
+      "divergence_score": 0.53,
+      "critique": {
+        "distinctiveness": 4,
+        "strategic_fit": 3,
+        "memorability": 3,
+        "audience_resonance": 3,
+        "feasibility": 2,
+        "case_against": "Anti-marketing is itself a well-worn marketing trope, so the pose reads as knowing rather than honest, and a seed-stage brand with zero paid reach has no mechanism to be discovered at all — an unlaunch by an unknown is indistinguishable from silence. The spreadsheet homepage entertains insiders but taxes conversion for everyone else, and the concept says almost nothing about the shoe itself: it is a media strategy wearing a brand strategy's clothes, and it collapses the moment the company runs its first promotion.",
+        "verdict": "revise",
+        "critic_model": "claude-opus-4-1"
+      },
+      "annotations": [
+        {
+          "text": "Regenerating the headline didn't fix it because the words were never the problem — the concept is a media strategy wearing a brand strategy's clothes. The mud-and-spreadsheet honesty beat survives inside The Receipt's 'publish the misses' pillar. Killing it.",
+          "author": "keshav",
+          "at": null
+        }
+      ],
+      "parent_id": null,
+      "merged_from": []
+    },
+    {
+      "id": "dir-9e61b47d20",
+      "big_idea": "The Receipt Box: the shoebox is printed inside and out as the shoe's full audited receipt — unboxing is the audit, and the box mails back as the prepaid return label for end-of-life recovery.",
+      "headline": "The box is the fine print.",
+      "brain": "conceptial",
+      "status": "killed",
+      "critique_stale": false,
+      "divergence_score": 0.42,
+      "critique": {
+        "distinctiveness": 4,
+        "strategic_fit": 3,
+        "memorability": 4,
+        "audience_resonance": 3,
+        "feasibility": 4,
+        "case_against": "A packaging execution masquerading as a brand platform: the box is a delightful first touch, but it says nothing on foot, on the run, or at a retail wall where boxes are discarded, and the parent direction already owns the receipt idea in a place runners actually see daily. Unboxing theater also sits uneasily with an anti-waste story — the more the box matters, the more material and print the brand ships — and mail-back return logistics duplicate the rebuild territory's burdens without its payoff. Kill it or fold its best beat, the return-label lid, into the parent.",
+        "verdict": "revise",
+        "critic_model": "claude-opus-4-1"
+      },
+      "annotations": [
+        {
+          "text": "Fun, but it's a packaging execution, not a platform — nothing lives on foot or at mile 300. Fold the mail-back lid idea into the rebuild kit later. Killing.",
+          "author": "keshav",
+          "at": null
+        }
+      ],
+      "parent_id": "dir-4c9e2a71b3",
+      "merged_from": []
+    },
+    {
+      "id": "dir-5a2f8c03e7",
+      "big_idea": "The Living Receipt: every pair ships with its audited, itemized footprint printed on the tongue and living at a public URL — and at mile 500 the receipt gets a second page: swap the outsole and midsole core with a rebuild kit and keep the same shoe on the books.",
+      "headline": "Stop buying new shoes.",
+      "brain": "conceptial",
+      "status": "promoted",
+      "critique_stale": false,
+      "divergence_score": null,
+      "critique": {
+        "distinctiveness": 5,
+        "strategic_fit": 5,
+        "memorability": 4,
+        "audience_resonance": 4,
+        "feasibility": 3,
+        "case_against": "Fusing receipts with rebuildability doubles the surface area a skeptic can attack: the brand must defend audit methodology and reverse-logistics economics at the same time, at seed stage, before either has a proof point. The mile-500 rebuild promise adds inventory, liability and sizing-continuity burdens that could starve the audit budget, and the combined story is harder to say in three seconds at a retail wall than either parent was. If one pillar slips — a late audit, a delayed kit — the failure discredits both, because the brand promised the receipt would always be current.",
+        "verdict": "ship",
+        "critic_model": "claude-opus-4-1"
+      },
+      "annotations": [
+        {
+          "text": "This is the brand: proof at purchase, proof at mile 500. The receipt gives Rebuild credibility; the rebuild gives Receipt a future beyond novelty. Ship it to packaging.",
+          "author": "keshav",
+          "at": null
+        }
+      ],
+      "parent_id": null,
+      "merged_from": [
+        "dir-4c9e2a71b3",
+        "dir-8d17f0a2c5"
+      ]
+    }
+  ],
+  "divergence": {
+    "min": null,
+    "mean": null,
+    "warning": false
+  }
+}

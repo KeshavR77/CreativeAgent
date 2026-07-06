@@ -1,0 +1,231 @@
+{
+  "id": "dir-8d17f0a2c5",
+  "territory": {
+    "label": "Built To Rebuild",
+    "lens": "circularity as an engineering feature — repair, resole, return",
+    "description": "Attack waste instead of adjectives: a shoe architected for a second and third life, where the sustainability story is a wrench, not a slogan."
+  },
+  "big_idea": "Mile 501: a running shoe engineered as a chassis with replaceable wear parts — outsole, midsole core, laces — so at mile 500 you order a rebuild kit, not a new shoe, and the odometer keeps counting.",
+  "brain": "claude_high_temp",
+  "art_direction": {
+    "mood_descriptors": [
+      "mechanical",
+      "durable",
+      "hands-on",
+      "engineered"
+    ],
+    "imagery_direction": "Exploded-view product photography and workshop scenes: the shoe split into its replaceable parts laid out like a field-strip diagram, hands mid-repair, honest tool marks and wear left visible.",
+    "layout_notes": "Technical-manual language: numbered callouts, exploded diagrams, dotted leader lines; captions set like torque specs.",
+    "palette": [
+      {
+        "name": "Chassis Grey",
+        "hex": "#3A3F44",
+        "role": "primary"
+      },
+      {
+        "name": "Workshop Paper",
+        "hex": "#F2EFE9",
+        "role": "background"
+      },
+      {
+        "name": "Rebuild Orange",
+        "hex": "#D97A32",
+        "role": "accent"
+      },
+      {
+        "name": "Tread Black",
+        "hex": "#141414",
+        "role": "contrast"
+      }
+    ],
+    "typography": [
+      {
+        "role": "heading",
+        "family": "Space Grotesk",
+        "fallback": "sans-serif",
+        "weights": [
+          "700"
+        ]
+      },
+      {
+        "role": "body",
+        "family": "Inter",
+        "fallback": "sans-serif",
+        "weights": [
+          "400"
+        ]
+      },
+      {
+        "role": "caption",
+        "family": "IBM Plex Mono",
+        "fallback": "monospace",
+        "weights": [
+          "400"
+        ]
+      }
+    ],
+    "moodboard": [
+      {
+        "kind": "generated",
+        "url": "/generated/f4b7c21e9d3a4c65a8b90e7d5f13c2ab/dir-8d17f0a2c5/f6681c5ca95881e58c373c399bd80fda.png",
+        "provider": "fal",
+        "license": "AI-generated",
+        "gen_model": "flux/schnell",
+        "gen_prompt": "moodboard tile — Exploded-view product photography and workshop scenes: the shoe split into its replaceable parts laid out like a field-strip diagram, hands mid-repair, honest tool marks and wear left visible.; mood: mechanical, durable, hands-on, engineered; palette #3A3F44, #F2EFE9, #D97A32, #141414; variation 1; no brand names, no logos, no legible text",
+        "source_url": null,
+        "attribution": null,
+        "caption": null
+      },
+      {
+        "kind": "sourced",
+        "url": "https://example.com/photos/exploded-boot.jpg",
+        "provider": "pexels",
+        "license": "Pexels License",
+        "gen_model": null,
+        "gen_prompt": null,
+        "source_url": "https://example.com/photos/exploded-boot",
+        "attribution": "Dana Reyes",
+        "caption": "Disassembled boot parts laid out on kraft paper."
+      },
+      {
+        "kind": "sourced",
+        "url": "https://example.com/photos/cobbler-hands.jpg",
+        "provider": "pexels",
+        "license": "Pexels License",
+        "gen_model": null,
+        "gen_prompt": null,
+        "source_url": "https://example.com/photos/cobbler-hands",
+        "attribution": "Gio Marchetti",
+        "caption": "A cobbler's hands re-soling a worn shoe at a workbench."
+      },
+      {
+        "kind": "generated",
+        "url": "/generated/f4b7c21e9d3a4c65a8b90e7d5f13c2ab/dir-8d17f0a2c5/97e1078e7e1bbd98d198c7c38238dbb2.png",
+        "provider": "fal",
+        "license": "AI-generated",
+        "gen_model": "flux/schnell",
+        "gen_prompt": "moodboard tile — Exploded-view product photography and workshop scenes: the shoe split into its replaceable parts laid out like a field-strip diagram, hands mid-repair, honest tool marks and wear left visible.; mood: mechanical, durable, hands-on, engineered; palette #3A3F44, #F2EFE9, #D97A32, #141414; variation 2; no brand names, no logos, no legible text",
+        "source_url": null,
+        "attribution": null,
+        "caption": null
+      },
+      {
+        "kind": "sourced",
+        "url": "https://example.com/photos/worn-outsole.jpg",
+        "provider": "pexels",
+        "license": "Pexels License",
+        "gen_model": null,
+        "gen_prompt": null,
+        "source_url": "https://example.com/photos/worn-outsole",
+        "attribution": "Hana Petrov",
+        "caption": "Extreme macro of a worn outsole tread pattern."
+      },
+      {
+        "kind": "sourced",
+        "url": "https://example.com/photos/tool-wall.jpg",
+        "provider": "pexels",
+        "license": "Pexels License",
+        "gen_model": null,
+        "gen_prompt": null,
+        "source_url": "https://example.com/photos/tool-wall",
+        "attribution": "Kofi Adjei",
+        "caption": "A tidy pegboard tool wall in a small workshop."
+      },
+      {
+        "kind": "generated",
+        "url": "/generated/f4b7c21e9d3a4c65a8b90e7d5f13c2ab/dir-8d17f0a2c5/47201882bcfad20536aba94bdc59f22e.png",
+        "provider": "fal",
+        "license": "AI-generated",
+        "gen_model": "flux/schnell",
+        "gen_prompt": "moodboard tile — Exploded-view product photography and workshop scenes: the shoe split into its replaceable parts laid out like a field-strip diagram, hands mid-repair, honest tool marks and wear left visible.; mood: mechanical, durable, hands-on, engineered; palette #3A3F44, #F2EFE9, #D97A32, #141414; variation 3; no brand names, no logos, no legible text",
+        "source_url": null,
+        "attribution": null,
+        "caption": null
+      },
+      {
+        "kind": "sourced",
+        "url": "https://example.com/photos/rubber-crumb.jpg",
+        "provider": "pexels",
+        "license": "Pexels License",
+        "gen_model": null,
+        "gen_prompt": null,
+        "source_url": "https://example.com/photos/rubber-crumb",
+        "attribution": "Chidi Okafor",
+        "caption": "Close-up of recycled rubber crumb and knit textile texture."
+      },
+      {
+        "kind": "sourced",
+        "url": "https://example.com/photos/dawn-street-runner.jpg",
+        "provider": "pexels",
+        "license": "Pexels License",
+        "gen_model": null,
+        "gen_prompt": null,
+        "source_url": "https://example.com/photos/dawn-street-runner",
+        "attribution": "Marta Silva",
+        "caption": "An urban runner crossing an empty morning street at dawn."
+      }
+    ]
+  },
+  "copy": {
+    "headline": "Your next shoe is the one you already own.",
+    "subhead": "Outsole, midsole core, laces — engineered to swap at mile 500, so the shoe you trust never retires.",
+    "body": "Running shoes die from the bottom up: the chassis outlives the foam three to one. We split the shoe at its wear lines — swap the outsole and midsole core in minutes with one tool, keep the upper that already fits you, and keep the mileage counting. Rebuilding cuts the footprint of your next 500 miles by more than half, and we publish the teardown so you can check the math.",
+    "taglines": [
+      "Rebuilt, not replaced.",
+      "500 more, same shoe."
+    ],
+    "cta": "See the rebuild kit"
+  },
+  "sketches": [
+    {
+      "kind": "generated",
+      "url": "/generated/f4b7c21e9d3a4c65a8b90e7d5f13c2ab/dir-8d17f0a2c5/eec7a753e6eb0b50c0f4ca1b74576143.png",
+      "provider": "fal",
+      "license": "AI-generated",
+      "gen_model": "flux/schnell",
+      "gen_prompt": "rough marker sketch exploring 'Mile 501: a running shoe engineered as a chassis with replaceable wear parts — outsole, midsole core, laces — so at mile 500 you order a rebuild kit, not a new shoe, and the odometer keeps counting.' through the lens of circularity as an engineering feature — repair, resole, return; no brand names, no logos, no legible text in the image",
+      "source_url": null,
+      "attribution": null,
+      "caption": null
+    },
+    {
+      "kind": "generated",
+      "url": "/generated/f4b7c21e9d3a4c65a8b90e7d5f13c2ab/dir-8d17f0a2c5/6694d03ab9495c4260bff1870d3721c2.png",
+      "provider": "fal",
+      "license": "AI-generated",
+      "gen_model": "flux/schnell",
+      "gen_prompt": "quick concept thumbnail exploring 'Mile 501: a running shoe engineered as a chassis with replaceable wear parts — outsole, midsole core, laces — so at mile 500 you order a rebuild kit, not a new shoe, and the odometer keeps counting.' through the lens of circularity as an engineering feature — repair, resole, return; no brand names, no logos, no legible text in the image",
+      "source_url": null,
+      "attribution": null,
+      "caption": null
+    },
+    {
+      "kind": "generated",
+      "url": "/generated/f4b7c21e9d3a4c65a8b90e7d5f13c2ab/dir-8d17f0a2c5/d0f9e6560993997088de25070abe8bb7.png",
+      "provider": "fal",
+      "license": "AI-generated",
+      "gen_model": "flux/schnell",
+      "gen_prompt": "loose ink gesture drawing exploring 'Mile 501: a running shoe engineered as a chassis with replaceable wear parts — outsole, midsole core, laces — so at mile 500 you order a rebuild kit, not a new shoe, and the odometer keeps counting.' through the lens of circularity as an engineering feature — repair, resole, return; no brand names, no logos, no legible text in the image",
+      "source_url": null,
+      "attribution": null,
+      "caption": null
+    }
+  ],
+  "critique": {
+    "distinctiveness": 4,
+    "strategic_fit": 4,
+    "memorability": 4,
+    "audience_resonance": 4,
+    "feasibility": 3,
+    "case_against": "Repairable footwear has a graveyard of pilots behind it: modular joints add weight and failure points exactly where runners feel them, and any perceptible loss of ride quality kills the value proposition regardless of the footprint math. The rebuild-kit logistics — reverse inventory, sizing continuity across generations, safety liability for home repairs on a performance product — are heavy for a seed-stage company, and the mile-500 trigger assumes runners track mileage religiously enough to act on it. Retailers also have little incentive to stock a shoe designed to halve repeat purchases.",
+    "verdict": "revise",
+    "critic_model": "claude-opus-4-1"
+  },
+  "critique_stale": false,
+  "divergence_score": 0.62,
+  "status": "draft",
+  "annotations": [],
+  "parent_id": null,
+  "merged_from": [],
+  "lens_tweak": null
+}

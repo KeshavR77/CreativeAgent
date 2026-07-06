@@ -1,0 +1,9 @@
+:root {
+  --color-primary: #1B1B1B;
+  --color-background: #FAFAF5;
+  --color-accent: #2B4C7E;
+  --color-signal: #C6482E;
+  --font-heading: IBM Plex Mono;
+  --font-body: Inter;
+  --font-data: IBM Plex Mono;
+}
