@@ -25,7 +25,12 @@ const REFETCH_ON: ReadonlySet<string> = new Set([
 export function useProjectSync(projectId: string | undefined) {
   useEffect(() => {
     if (!projectId) return;
-    const store = useProjectStore.getState();
+    // Reset the singleton store when the bound project changes. `seq` is
+    // per-project on the backend; without this, the previous project's lastSeq
+    // is sent as lastEventId (skipping the new project's backfill) and its
+    // agentStream/costs bleed into this project's Studio. (Bug: cross-project
+    // event bleed — invisible in single-project tests.)
+    useProjectStore.getState().reset();
     let closed = false;
     let refetchTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -65,7 +70,7 @@ export function useProjectSync(projectId: string | undefined) {
 
     const conn = openEventStream(projectId, {
       onEvent,
-      lastEventId: store.lastSeq,
+      lastEventId: 0, // fresh per project (store was just reset); backfill from the start
     });
 
     return () => {

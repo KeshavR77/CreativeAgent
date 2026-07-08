@@ -191,5 +191,10 @@ def seed(state: GraphState) -> dict:
         creative_brief=(creative_brief.model_dump() if creative_brief else {}),
     )
     result: SeedResult = generate_structured(model, prompt, SeedResult)
+    # Cap at K: a real model may return more territories than requested. The
+    # fan-out explores only K, so storing more leaves orphan skeleton lanes in the
+    # Studio that never fill. Keep the projection consistent with what runs.
+    k = max(2, get_settings().K)
+    territories = result.territories[:k]
     _completed(write, "seed", "territories")
-    return {"territories": result.territories, "costs": [_cost("seed", model, write)]}
+    return {"territories": territories, "costs": [_cost("seed", model, write)]}

@@ -9,6 +9,7 @@
  * "not in the right state" to keep buttons locked mid-flight).
  */
 import type {
+  Brief,
   ConceptPackage,
   CreateProjectBody,
   DivergenceReport,
@@ -40,8 +41,11 @@ async function request<T>(
   path: string,
   init?: RequestInit & { rawText?: boolean }
 ): Promise<T> {
+  // Never force JSON content-type on a FormData body — the browser must set the
+  // multipart boundary itself (file uploads).
+  const isForm = typeof FormData !== 'undefined' && init?.body instanceof FormData;
   const res = await fetch(`${BASE}${path}`, {
-    headers: init?.body ? { 'Content-Type': 'application/json' } : undefined,
+    headers: init?.body && !isForm ? { 'Content-Type': 'application/json' } : undefined,
     ...init,
   });
   if (!res.ok) {
@@ -78,6 +82,16 @@ export const api = {
 
   createProject: (body: CreateProjectBody) =>
     post<{ id: string; state: string }>('/projects', body),
+
+  // Upload a client RFP PDF; the backend distills a Brief and seeds a project.
+  createProjectFromPdf: (file: File) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    return request<{ id: string; state: string; brief: Brief }>('/projects/from-pdf', {
+      method: 'POST',
+      body: fd,
+    });
+  },
 
   listProjects: () => get<ProjectSummary[]>('/projects'),
 

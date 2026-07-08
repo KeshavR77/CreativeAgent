@@ -202,8 +202,8 @@ function ProcessRecord({ view }: { view: ProjectView }) {
       label: '05 Territories',
       body: (
         <div className="flex flex-col gap-1.5">
-          {view.territories.map((t) => (
-            <p key={t.label} className="text-[13px] leading-relaxed text-ink">
+          {view.territories.map((t, ti) => (
+            <p key={`${t.label}-${ti}`} className="text-[13px] leading-relaxed text-ink">
               <span className="font-serif">{t.label}</span>
               <span className="text-muted"> — {t.lens}</span>
             </p>

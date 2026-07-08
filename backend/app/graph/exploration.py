@@ -12,6 +12,7 @@ empty here and land in sub-plan 05.
 from __future__ import annotations
 
 import hashlib
+import time
 
 from langgraph.config import get_stream_writer
 from pydantic import BaseModel, Field
@@ -34,7 +35,7 @@ from app.services.conceptial import ConceptialUnavailable
 from app.services.conceptial import generate as conceptial_generate
 from app.services.divergence import divergence_report
 from app.services.mock_chat import MockChatModel
-from app.services.models import generate_structured, get_chat_model, last_usage
+from app.services.models import generate_structured, get_chat_model, last_usage, reset_usage
 from app.services.prompts import render_prompt
 
 
@@ -100,8 +101,11 @@ def ideate_one(project_id: str, territory: Territory, *, lens_tweak: str | None 
             ideas = conceptial_generate(
                 creative_brief=f"{territory.label} — {lens}", territory=territory, n_ideas=1
             )
-            if ideas:
-                return ideas[0]["big_idea"], "conceptial"
+            # Guard the per-idea key too: Conceptial key drift ("concept" vs
+            # "big_idea") must fall through to the LLM ideator, not raise a
+            # KeyError that fails the whole territory.
+            if ideas and (idea := ideas[0].get("big_idea")):
+                return idea, "conceptial"
         except ConceptialUnavailable:
             pass
     # LLM ideator (any provider get_chat_model resolves to): run the generator hot.
@@ -172,48 +176,73 @@ def _visual_costs(direction: Direction, base: CostRecord) -> list[CostRecord]:
     ]
 
 
+def _is_transient(exc: Exception) -> bool:
+    """A transport/provider blip worth retrying (vs a bad model output). Matches by
+    class name so we needn't import each provider SDK's exception hierarchy."""
+    if isinstance(exc, (ConnectionError, TimeoutError)):
+        return True
+    name = type(exc).__name__
+    return any(
+        k in name
+        for k in ("Timeout", "Connection", "RateLimit", "InternalServer", "Overloaded", "ServiceUnavailable", "APIError")
+    )
+
+
+_EXPLORE_ATTEMPTS = 3
+
+
 def explore_territory(state: GraphState) -> dict:
-    """One fan-out branch: idea -> spec -> critic. Receives its territory + context
-    via the Send payload (a Send branch does NOT see accumulated state)."""
+    """One fan-out branch: idea -> spec -> critic -> visuals. Receives its territory
+    via the Send payload (a Send branch does NOT see accumulated state). Transient
+    GLM errors are retried in-branch; a persistent failure isolates this territory
+    (never kills the run). ``index`` keeps the direction id unique across duplicate
+    territory labels."""
     writer = get_stream_writer()
     project_id = state["project_id"]
     territory = Territory.model_validate(state["territory"])
     label = territory.label
-    try:
-        writer({"type": EventType.agent_started.value, "agent": "explore", "territory": label})
-        big_idea, brain = ideate_one(project_id, territory)
-        art, copy = build_spec(project_id, territory, big_idea)
-        direction = Direction(
-            id=direction_id(project_id, label),
-            territory=territory,
-            big_idea=big_idea,
-            brain=brain,
-            art_direction=art,
-            copy=copy,
-            sketches=[],
-        )
-        critique = critique_one(project_id, direction)
-        direction = direction.model_copy(update={"critique": critique})
-        direction = attach_visuals(project_id, direction)  # sketches + hybrid moodboard (§10.7 steps 3-4)
-        writer({"type": EventType.direction_created.value, "direction_id": direction.id, "brain": brain})
-        # real chat-token cost for this branch's ideate/spec/copy/critique calls
-        # (accumulated in the per-branch context; 0 for the mock).
-        usage = last_usage()
-        explore_cost = CostRecord(
-            agent="explore",
-            model=brain,
-            input_tokens=int(usage.get("input_tokens", 0) or 0),
-            output_tokens=int(usage.get("output_tokens", 0) or 0),
-        )
-        costs = _visual_costs(direction, explore_cost)
-        for rec in costs:  # tick the Studio cost footer live, per record
-            writer({"type": EventType.cost_recorded.value, **rec.model_dump()})
-        return {"directions": [direction], "costs": costs}
-    except Exception as exc:  # noqa: BLE001 - a failed territory must not kill the run
-        writer(
-            {"type": EventType.agent_failed.value, "agent": "explore", "territory": label, "error": str(exc)}
-        )
-        return {"failed_territories": [label]}
+    index = int(state.get("index", 0) or 0)
+    writer({"type": EventType.agent_started.value, "agent": "explore", "territory": label})
+    for attempt in range(_EXPLORE_ATTEMPTS):
+        reset_usage()  # per-attempt, so a retry doesn't double-count tokens
+        try:
+            big_idea, brain = ideate_one(project_id, territory)
+            art, copy = build_spec(project_id, territory, big_idea)
+            direction = Direction(
+                id=direction_id(project_id, f"{index}:{label}"),
+                territory=territory,
+                big_idea=big_idea,
+                brain=brain,
+                art_direction=art,
+                copy=copy,
+                sketches=[],
+            )
+            critique = critique_one(project_id, direction)
+            direction = direction.model_copy(update={"critique": critique})
+            direction = attach_visuals(project_id, direction)  # sketches + hybrid moodboard (§10.7 steps 3-4)
+            writer({"type": EventType.direction_created.value, "direction_id": direction.id, "brain": brain})
+            # real chat-token cost for this branch's ideate/spec/copy/critique calls
+            # (accumulated in the per-branch context; 0 for the mock).
+            usage = last_usage()
+            explore_cost = CostRecord(
+                agent="explore",
+                model=brain,
+                input_tokens=int(usage.get("input_tokens", 0) or 0),
+                output_tokens=int(usage.get("output_tokens", 0) or 0),
+            )
+            costs = _visual_costs(direction, explore_cost)
+            for rec in costs:  # tick the Studio cost footer live, per record
+                writer({"type": EventType.cost_recorded.value, **rec.model_dump()})
+            return {"directions": [direction], "costs": costs}
+        except Exception as exc:  # noqa: BLE001 - a failed territory must not kill the run
+            if _is_transient(exc) and attempt < _EXPLORE_ATTEMPTS - 1:
+                time.sleep(2.0 * (attempt + 1))
+                continue
+            writer(
+                {"type": EventType.agent_failed.value, "agent": "explore", "territory": label, "error": str(exc)}
+            )
+            return {"failed_territories": [label]}
+    return {"failed_territories": [label]}  # unreachable, satisfies the type checker
 
 
 def divergence_node(state: GraphState) -> dict:

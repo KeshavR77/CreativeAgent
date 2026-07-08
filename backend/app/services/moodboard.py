@@ -52,7 +52,8 @@ def _src_queries(moods: list[str], imagery: str) -> list[str]:
 
 def _gen_share(project_id: str, direction_id: str, moods, imagery, palette, n: int) -> list[ImageRef]:
     try:
-        return imagegen.generate(
+        # generate_reliable returns exactly n real tiles when the lane is enabled.
+        return imagegen.generate_reliable(
             _gen_prompts(moods, imagery, palette, n), project_id=project_id, direction_id=direction_id
         )
     except imagegen.ImageGenUnavailable:
@@ -107,7 +108,11 @@ def build(direction_id, moods, imagery, *, project_id, palette=None, size=None, 
     if n_src > 0:
         items += _src_share(moods, imagery, n_src)
 
-    # backfill any shortfall (a lane under-delivered / refs dropped) to reach size
+    # Backfill any shortfall (e.g. the sourced lane under-delivered) to reach size.
+    # When the generation lane is live, regenerate REAL tiles rather than showing
+    # placeholders — a real run has no placeholder tiles.
+    if len(items) < size and gen_on:
+        items += _gen_share(project_id, direction_id, moods, imagery, palette, size - len(items))
     while len(items) < size:
         items.append(_placeholder(project_id, direction_id))
     return _shuffle(items[:size], direction_id)
@@ -133,7 +138,7 @@ def regenerate_slot(
     if target_kind == "generated":
         gen_prompt = prompt or _gen_prompts(moods, imagery, palette, 1)[0]
         try:
-            (ref,) = imagegen.generate([gen_prompt], project_id=project_id, direction_id=direction_id)
+            (ref,) = imagegen.generate_reliable([gen_prompt], project_id=project_id, direction_id=direction_id)
         except imagegen.ImageGenUnavailable:
             ref = None
     elif target_kind == "sourced":

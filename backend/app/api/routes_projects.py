@@ -13,12 +13,16 @@ from __future__ import annotations
 
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, File, HTTPException, Request, UploadFile
 from pydantic import BaseModel, Field, ValidationError
 
 from app.models.artifacts import Brief, Strategy
 from app.models.events import RunState
 from app.models.views import ProjectSummary, ProjectView
+from app.services.pdf_intake import PdfIntakeError, brief_from_pdf_bytes
+
+# Reject oversized uploads before reading them into memory (RFPs are a few MB).
+_MAX_PDF_BYTES = 15 * 1024 * 1024
 
 router = APIRouter(prefix="/api")
 
@@ -55,18 +59,50 @@ def _brief_for(request: Request, project_id: str) -> Brief:
     return briefs[project_id]
 
 
+def _register_project(request: Request, brief: Brief) -> str:
+    """Register a new project from a Brief and return its id."""
+    project_id = uuid4().hex
+    _pending_briefs(request)[project_id] = brief
+    _run_manager(request).create(project_id, brief)
+    return project_id
+
+
 @router.post("/projects", status_code=201)
 async def create_project(body: CreateProjectBody, request: Request) -> dict:
-    project_id = uuid4().hex
     brief = Brief(
         brief=body.brief,
         brand_name=body.brand_name,
         constraints=list(body.constraints),
         audience=body.audience,
     )
-    _pending_briefs(request)[project_id] = brief
-    _run_manager(request).create(project_id, brief)
+    project_id = _register_project(request, brief)
     return {"id": project_id, "state": RunState.intake.value}
+
+
+@router.post("/projects/from-pdf", status_code=201)
+async def create_project_from_pdf(request: Request, file: UploadFile = File(...)) -> dict:
+    """The normal entry point: upload a client RFP PDF; the reasoning model reads
+    it and distills a Brief, which seeds a new project. Returns the distilled brief
+    so the UI can show what was understood before the run starts."""
+    if file.content_type not in (None, "application/pdf", "application/octet-stream") and not (
+        file.filename or ""
+    ).lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="please upload a PDF file")
+    data = await file.read()
+    if not data:
+        raise HTTPException(status_code=400, detail="the uploaded file is empty")
+    if len(data) > _MAX_PDF_BYTES:
+        raise HTTPException(status_code=413, detail="PDF too large (max 15 MB)")
+    try:
+        brief = brief_from_pdf_bytes(data)
+    except PdfIntakeError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    project_id = _register_project(request, brief)
+    return {
+        "id": project_id,
+        "state": RunState.intake.value,
+        "brief": brief.model_dump(),
+    }
 
 
 @router.get("/projects")

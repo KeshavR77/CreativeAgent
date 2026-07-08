@@ -18,6 +18,8 @@ dependencies = [
     "sqlalchemy>=2,<3",
     "pydantic-settings",
     "httpx",
+    "pypdf>=4,<6",
+    "python-multipart>=0.0.9",
 ]
 
 [project.optional-dependencies]

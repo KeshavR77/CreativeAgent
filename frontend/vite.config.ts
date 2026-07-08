@@ -1,5 +1,12 @@
 import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
+
+// Node 20.6.x + @babel/core trigger "Cannot redefine property: File", which
+// crashes @vitejs/plugin-react (babel) in the dev server. Use the SWC React
+// plugin for serve/build (no babel, no File collision); keep the babel plugin
+// under Vitest, where the suite is already green.
+const react = process.env.VITEST
+  ? (await import('@vitejs/plugin-react')).default
+  : (await import('@vitejs/plugin-react-swc')).default;
 
 // https://vitejs.dev/config/
 export default defineConfig({

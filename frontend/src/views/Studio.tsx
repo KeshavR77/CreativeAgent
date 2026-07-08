@@ -126,8 +126,8 @@ export default function Studio() {
               {(view?.directions ?? []).length === 0 && (view?.territories ?? []).length > 0 ? (
                 // Territories are seeded before branches land: show one skeleton
                 // lane per territory so the fan-out is visible while it works.
-                (view?.territories ?? []).map((t) => (
-                  <div key={t.label} data-testid="lane-skeleton" className="panel flex flex-col gap-2 p-3">
+                (view?.territories ?? []).map((t, ti) => (
+                  <div key={`${t.label}-${ti}`} data-testid="lane-skeleton" className="panel flex flex-col gap-2 p-3">
                     <div className="flex items-baseline gap-2">
                       <span className="truncate font-serif text-[15px] text-ink">{t.label}</span>
                       <span className="dot dot-live ml-auto shrink-0" />

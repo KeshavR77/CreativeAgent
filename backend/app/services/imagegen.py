@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import base64
 import logging
+import threading
 import time
 import uuid
 
@@ -201,17 +202,89 @@ def _zai_download(cdn: httpx.Client, url: str) -> bytes:
     raise ImageGenUnavailable(f"z.ai CDN download failed after retries: {last}")
 
 
+# z.ai's image tier rate-limits hard (HTTP 429, code 1302) and degrades under
+# concurrent bursts. The parallel fan-out would otherwise fire dozens of image
+# requests at once. So we SERIALIZE every z.ai image POST process-wide (one at a
+# time), PACE them (a minimum gap between request starts), and BACK OFF on 429 —
+# rather than hammering, which only deepens the throttle. Downloads (a different
+# host, not rate-limited) happen outside the gate.
+_ZAI_ATTEMPTS = 6
+_ZAI_MIN_GAP = 1.5  # seconds between successive image-POST starts
+_ZAI_429_BASE = 4.0  # base backoff (seconds) on a 429; exponential, capped
+_ZAI_GATE = threading.Lock()
+_ZAI_LAST = [0.0]  # monotonic time of the last POST start (guarded by _ZAI_GATE)
+
+
+def _retry_after_seconds(resp: httpx.Response) -> float | None:
+    try:
+        return float(resp.headers.get("retry-after", ""))
+    except (TypeError, ValueError):
+        return None
+
+
+def _zai_pace() -> None:
+    """Sleep so successive requests are >= _ZAI_MIN_GAP apart. Call under _ZAI_GATE."""
+    gap = _ZAI_MIN_GAP - (time.monotonic() - _ZAI_LAST[0])
+    if gap > 0:
+        time.sleep(gap)
+    _ZAI_LAST[0] = time.monotonic()
+
+
+def _zai_one(
+    api: httpx.Client, cdn: httpx.Client, prompt: str, project_id: str, direction_id: str, model: str
+) -> ImageRef | None:
+    """Generate ONE image with paced, serialized POSTs and proper 429 backoff.
+    Returns a provenance-complete ref, or None if every attempt failed."""
+    for attempt in range(_ZAI_ATTEMPTS):
+        remote_url: str | None = None
+        # --- rate-limited POST: serialized + paced across all branches ---
+        with _ZAI_GATE:
+            _zai_pace()
+            try:
+                resp = api.post(
+                    "/api/paas/v4/images/generations",
+                    json={"model": model, "prompt": prompt, "size": "1024x1024"},
+                )
+                if resp.status_code == 429:
+                    backoff = _retry_after_seconds(resp) or min(_ZAI_429_BASE * (2**attempt), 30.0)
+                    logger.warning(
+                        "z.ai 429 rate limit; backing off %.0fs (attempt %d/%d)", backoff, attempt + 1, _ZAI_ATTEMPTS
+                    )
+                    time.sleep(backoff)  # held under the gate: pause ALL branches while throttled
+                    continue
+                resp.raise_for_status()
+                data = resp.json().get("data") or []
+                if not data:
+                    raise ImageGenUnavailable("z.ai returned no images")
+                remote_url = data[0]["url"]
+            except (httpx.HTTPError, ImageGenUnavailable, KeyError, ValueError, TypeError, IndexError) as exc:
+                logger.warning("zai image POST attempt %d/%d failed (%s)", attempt + 1, _ZAI_ATTEMPTS, exc)
+                time.sleep(min(2.0 * (attempt + 1), 12.0))
+                continue
+        # --- download outside the gate (different host, not the rate-limited API) ---
+        try:
+            content = _zai_download(cdn, remote_url)
+        except ImageGenUnavailable as exc:
+            logger.warning("zai image download attempt %d/%d failed (%s)", attempt + 1, _ZAI_ATTEMPTS, exc)
+            continue
+        url = _persist_image_bytes(content, project_id, direction_id)
+        return ImageRef(
+            kind="generated", url=url, provider="zai", license="AI-generated", gen_model=model, gen_prompt=prompt
+        )
+    return None
+
+
 def _zai_generate(
     prompts: list[str], *, project_id: str, direction_id: str, model: str, transport: httpx.BaseTransport | None = None
 ) -> list[ImageRef]:
     """z.ai (Zhipu) images: POST -> image URL -> download + persist bytes.
     Reuses the GLM key (one-key setups) — see Settings.zai_image_key.
 
-    Fault isolation is PER PROMPT: one failed generation/download costs that one
-    slot (the caller's placeholder backfill covers it), never the whole batch.
-    Raises ImageGenUnavailable only when EVERY prompt failed (lane-level outage).
-    The CDN download uses an unauthenticated client — the API key must not leak
-    to a different host."""
+    Each image is retried hard (_ZAI_ATTEMPTS) so the batch returns a real image
+    for (almost) every prompt — the caller regenerates any residual shortfall, so
+    a real run shows NO placeholders. Raises ImageGenUnavailable only when EVERY
+    prompt failed every attempt (a genuine lane outage). The CDN download uses an
+    unauthenticated client — the API key must not leak to a different host."""
     settings = get_settings()
     api = httpx.Client(
         base_url="https://api.z.ai",
@@ -220,32 +293,15 @@ def _zai_generate(
         transport=transport,
     )
     cdn = httpx.Client(timeout=60.0, transport=transport)  # no auth header cross-host
-    refs: list[ImageRef] = []
-    failures = 0
     try:
-        for prompt in prompts:
-            try:
-                resp = api.post(
-                    "/api/paas/v4/images/generations",
-                    json={"model": model, "prompt": prompt, "size": "1024x1024"},
-                )
-                resp.raise_for_status()
-                data = resp.json().get("data") or []
-                if not data:
-                    raise ImageGenUnavailable("z.ai returned no images")
-                content = _zai_download(cdn, data[0]["url"])
-                url = _persist_image_bytes(content, project_id, direction_id)
-                refs.append(
-                    ImageRef(
-                        kind="generated", url=url, provider="zai", license="AI-generated", gen_model=model, gen_prompt=prompt
-                    )
-                )
-            except (httpx.HTTPError, ImageGenUnavailable, KeyError, ValueError, TypeError, IndexError) as exc:
-                logger.warning("zai image failed for one prompt (%s); slot degrades to placeholder", exc)
-                failures += 1
+        refs = [
+            ref
+            for prompt in prompts
+            if (ref := _zai_one(api, cdn, prompt, project_id, direction_id, model)) is not None
+        ]
         if refs:
             return refs
-        raise ImageGenUnavailable(f"z.ai produced no images ({failures} failures)")
+        raise ImageGenUnavailable(f"z.ai produced no images for {len(prompts)} prompt(s)")
     finally:
         api.close()
         cdn.close()
@@ -267,3 +323,35 @@ def generate(prompts: list[str], *, project_id: str, direction_id: str, model: s
     if provider == "zai" and settings.zai_image_key:
         return _zai_generate(prompts, project_id=project_id, direction_id=direction_id, model=gen_model)
     return _mock_generate(prompts, project_id, direction_id, gen_model)
+
+
+def generate_reliable(
+    prompts: list[str], *, project_id: str, direction_id: str, model: str | None = None, rounds: int = 2
+) -> list[ImageRef]:
+    """Return EXACTLY ``len(prompts)`` generated refs when the lane is enabled.
+
+    Regenerates any residual shortfall across ``rounds`` (each image is already
+    retried inside the adapter). As an absolute last resort under a partial outage
+    it repeats a successful image rather than emitting a placeholder — so a real
+    run never shows a placeholder tile. Raises ``ImageGenUnavailable`` only when
+    the lane is disabled (the keyless path, where the caller uses placeholders).
+    """
+    want = len(prompts)
+    refs = list(generate(prompts, project_id=project_id, direction_id=direction_id, model=model))
+    attempts = 0
+    while len(refs) < want and attempts < rounds:
+        need = want - len(refs)
+        try:
+            refs.extend(
+                generate(prompts[:need], project_id=project_id, direction_id=direction_id, model=model)
+            )
+        except ImageGenUnavailable:
+            break
+        attempts += 1
+    if refs and len(refs) < want:
+        logger.warning("image lane under-delivered (%d/%d); repeating real images to avoid placeholders", len(refs), want)
+        i = 0
+        while len(refs) < want:
+            refs.append(refs[i % len(refs)])
+            i += 1
+    return refs[:want]

@@ -2,7 +2,7 @@
 # Repo root: /Users/chetanraghavan/Desktop/Projects/CreativeAgent
 # Conventions: backend venv at backend/.venv (uv), frontend in frontend/ (npm).
 
-.PHONY: setup dev-backend dev-frontend test e2e demo fmt
+.PHONY: setup dev-backend dev-frontend test e2e fmt
 
 # Create backend venv + install (uv), then install frontend deps.
 # Idempotent from a clean checkout.
@@ -29,11 +29,6 @@ test:
 # Golden-path end-to-end on mocks (image lanes enabled). Exits 0/1.
 e2e:
 	backend/.venv/bin/python backend/scripts/e2e_golden.py
-
-# Seed one project paused at Gate 2 (curation) into data/ on mocks (no keys),
-# ready to demo the Cockpit after `make dev-backend`/`make dev-frontend`.
-demo:
-	PYTHONPATH=backend backend/.venv/bin/python backend/scripts/dev_seed.py
 
 # Best-effort formatters. Never fails if a formatter is absent — each
 # invocation is guarded with `command -v` and the whole target is prefixed `-`.

@@ -67,23 +67,51 @@ class AgentOutputError(Exception):
     """A model's structured output could not be parsed, even after one repair."""
 
 
-def strip_code_fences(text: str) -> str:
-    """Remove a leading ```/```json fence and a trailing ``` fence."""
-    t = text.strip()
+def content_to_text(content: Any) -> str:
+    """Normalize a chat message's ``content`` to a plain string.
+
+    Anthropic-style responses (which GLM/z.ai emit over the Anthropic-compatible
+    endpoint) may return ``content`` as a LIST of content blocks
+    (``[{"type": "text", "text": "..."}, ...]`` or objects) rather than a string.
+    Join the text of every text block so the downstream JSON parse gets a string,
+    not a list (otherwise ``.strip()`` blows up on the repair path)."""
+    if content is None:
+        return ""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts: list[str] = []
+        for block in content:
+            if isinstance(block, str):
+                parts.append(block)
+            elif isinstance(block, dict):
+                parts.append(str(block.get("text") or block.get("content") or ""))
+            else:  # a pydantic/object content block
+                parts.append(str(getattr(block, "text", "") or ""))
+        return "".join(parts)
+    return str(content)
+
+
+def strip_code_fences(text: Any) -> str:
+    """Remove a leading ```/```json fence and a trailing ``` fence. Tolerates a
+    non-string (e.g. Anthropic content-block list) by normalizing it first."""
+    t = content_to_text(text).strip()
     if t.startswith("```"):
         t = _FENCE_LEAD.sub("", t)
         t = _FENCE_TRAIL.sub("", t)
     return t.strip()
 
 
-def parse_with_repair(raw_content: str, schema: Type[T]) -> T:
-    """Parse `raw_content` into `schema`, repairing fenced JSON once."""
+def parse_with_repair(raw_content: Any, schema: Type[T]) -> T:
+    """Parse `raw_content` into `schema`, repairing fenced JSON once. Accepts a
+    string or an Anthropic content-block list (normalized to text)."""
+    text = content_to_text(raw_content)
     try:
-        return schema.model_validate_json(raw_content)
+        return schema.model_validate_json(text)
     except (ValidationError, ValueError):
         pass
     try:
-        return schema.model_validate_json(strip_code_fences(raw_content))
+        return schema.model_validate_json(strip_code_fences(text))
     except (ValidationError, ValueError) as exc:
         raise AgentOutputError(f"could not parse {schema.__name__} output after repair") from exc
 

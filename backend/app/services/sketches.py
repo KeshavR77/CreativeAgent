@@ -12,7 +12,7 @@ from __future__ import annotations
 from app.config import get_settings
 from app.models.artifacts import ImageRef
 from app.services.imagegen import ImageGenUnavailable
-from app.services.imagegen import generate as imagegen_generate
+from app.services.imagegen import generate_reliable as imagegen_generate
 
 _MEDIUMS = (
     "rough marker sketch",
@@ -50,14 +50,12 @@ def generate(direction_id: str, big_idea: str, lens: str, *, project_id: str, n:
     count = n if n is not None else get_settings().SKETCH_COUNT
     prompts = _prompts(big_idea, lens, count)
     try:
-        refs = imagegen_generate(prompts, project_id=project_id, direction_id=direction_id)
+        # generate_reliable guarantees exactly `count` real refs when the lane is
+        # enabled — no placeholders in a real run. Placeholders only appear on the
+        # keyless path (lane disabled), which raises below.
+        return list(imagegen_generate(prompts, project_id=project_id, direction_id=direction_id))
     except ImageGenUnavailable:
         return [_placeholder(project_id, direction_id) for _ in range(count)]
-    # a partially-degraded batch (per-prompt fault isolation) backfills to count
-    refs = list(refs)
-    while len(refs) < count:
-        refs.append(_placeholder(project_id, direction_id))
-    return refs
 
 
 def regenerate_single(
@@ -78,6 +76,11 @@ def regenerate_single(
         ref = _placeholder(project_id, direction_id)
     result[index] = ref
     return result
+
+
+# regenerate_single/regenerate_batch above resolve their images through
+# generate_reliable too (imagegen_generate is bound to it), so a single-tile
+# regenerate in the Cockpit also yields a real image, never a placeholder.
 
 
 def regenerate_batch(

@@ -25,8 +25,15 @@ os.environ.setdefault("APP_DATA_DIR", tempfile.mkdtemp(prefix="creativeagent-tes
 # Cleared so the empty-env contract is exercised deterministically.
 _RELEVANT_ENV_KEYS = (
     "ANTHROPIC_API_KEY",
+    "ANTHROPIC_BASE_URL",
     "CLAUDE_MODEL",
     "CRITIC_MODEL",
+    "MODEL_PROVIDER",
+    "MODEL_API_KEY",
+    "MODEL_BASE_URL",
+    "GENERATOR_MODEL",
+    "GENERATOR_CRITIC_MODEL",
+    "ZAI_API_KEY",
     "CONCEPTIAL_BASE_URL",
     "CONCEPTIAL_API_KEY",
     "IDEATOR_FALLBACK",

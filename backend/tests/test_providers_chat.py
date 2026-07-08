@@ -154,3 +154,54 @@ def test_mock_records_zero_usage(clean_env) -> None:
     generate_structured(get_chat_model("strategist", project_id="p"), [], Strategy)
     usage = last_usage()
     assert usage.get("input_tokens", 0) == 0 and usage.get("output_tokens", 0) == 0  # mock -> 0 tokens
+
+
+# --------------------------------------------------------------------------- #
+# Anthropic content-block normalization (GLM/z.ai over the Anthropic endpoint  #
+# may return `content` as a LIST of blocks; the repair path must not crash).   #
+# --------------------------------------------------------------------------- #
+def test_content_to_text_handles_blocks_and_strings() -> None:
+    from app.services.models import content_to_text
+
+    assert content_to_text("plain") == "plain"
+    assert content_to_text(None) == ""
+    assert content_to_text([{"type": "text", "text": "a"}, {"type": "text", "text": "b"}]) == "ab"
+    assert content_to_text(["x", {"text": "y"}]) == "xy"
+
+
+def test_parse_with_repair_accepts_list_content() -> None:
+    from pydantic import BaseModel
+
+    from app.services.models import parse_with_repair
+
+    class Tiny(BaseModel):
+        brief: str
+
+    # A fenced JSON payload delivered as Anthropic content blocks (a list).
+    blocks = [{"type": "text", "text": '```json\n{"brief": "hello"}\n```'}]
+    out = parse_with_repair(blocks, Tiny)
+    assert out.brief == "hello"
+
+
+def test_generate_structured_normalizes_list_content_on_repair() -> None:
+    from pydantic import BaseModel
+
+    from langchain_core.messages import AIMessage
+
+    from app.services.models import generate_structured
+
+    class Tiny(BaseModel):
+        brief: str
+
+    class FakeStructured:
+        def invoke(self, _messages):
+            # parsed=None forces the repair path; raw.content is a block LIST.
+            raw = AIMessage(content=[{"type": "text", "text": '{"brief": "ok"}'}])
+            return {"raw": raw, "parsed": None, "parsing_error": "x"}
+
+    class FakeModel:
+        def with_structured_output(self, _schema, *, include_raw=False, **_kw):
+            return FakeStructured()
+
+    out = generate_structured(FakeModel(), "msgs", Tiny)
+    assert out.brief == "ok"

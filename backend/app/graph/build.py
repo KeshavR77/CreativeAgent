@@ -49,22 +49,16 @@ def _route_to_territories(state: GraphState) -> list[Send]:
     territory costs a full explore branch (chat + sketches + moodboard). A Send
     branch does NOT see accumulated state, so all context travels in the payload."""
     project_id = state["project_id"]
-    strategy = state.get("strategy")
-    creative_brief = state.get("creative_brief")
-    verbal_identity = state.get("verbal_identity")
     k = max(2, get_settings().K)
+    # `index` disambiguates the direction id so two territories with the same label
+    # can't collapse into one direction (last-write-wins on a colliding id). The
+    # branch reads only project_id/territory/index — other context isn't needed.
     return [
         Send(
             "explore_territory",
-            {
-                "project_id": project_id,
-                "territory": territory.model_dump(),
-                "strategy": strategy.model_dump() if strategy is not None else None,
-                "creative_brief": creative_brief.model_dump() if creative_brief is not None else None,
-                "verbal_identity": verbal_identity.model_dump() if verbal_identity is not None else None,
-            },
+            {"project_id": project_id, "territory": territory.model_dump(), "index": i},
         )
-        for territory in state.get("territories", [])[:k]
+        for i, territory in enumerate(state.get("territories", [])[:k])
     ]
 
 
@@ -82,7 +76,9 @@ def build_graph(checkpointer):
     g.add_node("briefwrite", briefwrite, retry_policy=retry)
     g.add_node("seed", seed, retry_policy=retry)
     # --- fan-out + gate 2 (sub-plan 04) ---
-    g.add_node("explore_territory", explore_territory)  # self-handles branch failure
+    # explore_territory self-handles branch failure AND retries transient GLM
+    # errors internally; the node-level retry is a second belt for transport blips.
+    g.add_node("explore_territory", explore_territory, retry_policy=retry)
     g.add_node("divergence", divergence_node)
     g.add_node("curation_gate", curation_gate)
     g.add_node("refine", refine)
