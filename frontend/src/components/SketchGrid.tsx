@@ -22,18 +22,18 @@ export function SketchGrid({
 }: SketchGridProps) {
   return (
     <section data-testid="sketch-grid" className="flex flex-col gap-2">
-      <header className="flex items-center justify-between">
-        <h4 className="text-sm font-semibold text-slate-200">Sketches</h4>
+      <header className="flex items-baseline justify-between">
+        <h4 className="kicker">Sketches</h4>
         <button
           type="button"
           disabled={busy}
           onClick={() => onRegenerateAll()}
-          className="rounded bg-slate-800 px-2 py-1 text-xs text-slate-100 disabled:opacity-40"
+          className="btn-bare"
         >
           Regenerate all sketches
         </button>
       </header>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-3">
         {sketches.map((sketch, index) => (
           <ImageTile
             key={`${sketch.url}-${index}`}

@@ -1,3 +1,73 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html {
+    @apply bg-paper text-ink antialiased;
+  }
+  body {
+    @apply font-sans text-[15px] leading-relaxed;
+  }
+  ::selection {
+    @apply bg-accent text-white;
+  }
+}
+
+@layer components {
+  /* Uppercase letterspaced mono label — section kickers, field labels. */
+  .kicker {
+    @apply font-mono text-[10px] uppercase tracking-kicker text-muted;
+  }
+
+  /* Panels: white card on paper, hairline border, no shadow theatrics. */
+  .panel {
+    @apply rounded-sm border border-line bg-panel;
+  }
+
+  /* Buttons. Ink = primary; ghost = quiet; danger = rust text. */
+  .btn {
+    @apply inline-flex items-center gap-1.5 rounded-sm px-3 py-1.5 font-mono text-[11px] uppercase tracking-kicker transition-colors duration-150 disabled:cursor-default disabled:opacity-30;
+  }
+  .btn-ink {
+    @apply btn bg-ink text-paper hover:bg-accent;
+  }
+  .btn-ghost {
+    @apply btn border border-line bg-transparent text-ink-soft hover:border-ink hover:text-ink;
+  }
+  .btn-danger {
+    @apply btn border border-transparent bg-transparent text-accent hover:border-accent;
+  }
+  .btn-bare {
+    @apply font-mono text-[10px] uppercase tracking-kicker text-muted transition-colors hover:text-accent disabled:opacity-30;
+  }
+
+  /* Inputs — flat field on paper, ink caret, hairline. */
+  .field {
+    @apply w-full rounded-sm border border-line bg-paper px-3 py-2 text-[14px] leading-relaxed text-ink placeholder:text-faint focus:border-ink focus:outline-none;
+  }
+
+  /* Status dot — solid for resting states, pulsing for live ones. */
+  .dot {
+    @apply inline-block h-1.5 w-1.5 rounded-full;
+  }
+  .dot-live {
+    @apply dot bg-accent;
+    animation: pulse-dot 1.4s ease-in-out infinite;
+  }
+
+  /* Thin rule used as a section divider. */
+  .rule {
+    @apply border-t border-line;
+  }
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}

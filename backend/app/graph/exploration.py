@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import hashlib
 
-from langchain_core.messages import SystemMessage
 from langgraph.config import get_stream_writer
 from pydantic import BaseModel, Field
 
@@ -34,6 +33,7 @@ from app.models.state import GraphState
 from app.services.conceptial import ConceptialUnavailable
 from app.services.conceptial import generate as conceptial_generate
 from app.services.divergence import divergence_report
+from app.services.mock_chat import MockChatModel
 from app.services.models import generate_structured, get_chat_model, last_usage
 from app.services.prompts import render_prompt
 
@@ -62,6 +62,12 @@ def direction_id(project_id: str, discriminator: str) -> str:
 
 
 def _model_name(model) -> str:
+    """The concrete model id when the client exposes one (e.g. "glm-4.7",
+    "claude-opus-4-1"), falling back to the client family (_llm_type)."""
+    for attr in ("model", "model_name"):
+        value = getattr(model, attr, None)
+        if isinstance(value, str) and value:
+            return value
     return getattr(model, "_llm_type", "unknown")
 
 
@@ -98,18 +104,21 @@ def ideate_one(project_id: str, territory: Territory, *, lens_tweak: str | None 
                 return ideas[0]["big_idea"], "conceptial"
         except ConceptialUnavailable:
             pass
-    # fallback: the ideator fallback runs the generator hot (temp 1.0).
+    # LLM ideator (any provider get_chat_model resolves to): run the generator hot.
     model = get_chat_model("ideator", project_id=project_id, temperature=1.0, seed_extra=territory.label)
-    prompt = [SystemMessage(content=render_prompt("idea", territory=territory.label, lens=lens))]
+    prompt = render_prompt("idea", territory=territory.label, lens=lens)
     big_idea = generate_structured(model, prompt, IdeaResult).big_idea
-    brain = "claude_high_temp" if settings.claude_mode == "real" else "mock"
+    # brain reflects the ACTUAL ideator, keyed on the resolved model (provider-
+    # agnostic): the mock, or the configured real-LLM label IDEATOR_FALLBACK — set
+    # it to "glm" (etc.) when you point get_chat_model at a different provider.
+    brain = "mock" if isinstance(model, MockChatModel) else settings.IDEATOR_FALLBACK
     return big_idea, brain
 
 
 def build_spec(project_id: str, territory: Territory, big_idea: str) -> tuple[ArtDirectionSpec, CopyDeck]:
     """Produce the ArtDirectionSpec (moodboard stubbed empty) + CopyDeck."""
     model = get_chat_model("spec", project_id=project_id, temperature=0.7, seed_extra=territory.label)
-    prompt = [SystemMessage(content=render_prompt("spec", territory=territory.label, big_idea=big_idea))]
+    prompt = render_prompt("spec", territory=territory.label, big_idea=big_idea)
     spec = generate_structured(model, prompt, SpecResult)
     art = ArtDirectionSpec(
         imagery_direction=spec.imagery_direction,
@@ -127,11 +136,7 @@ def critique_one(project_id: str, direction: Direction) -> CritiqueScore:
     """Independent critique (fresh context, distinct model role). Verdict is
     computed in code; the real critic model is recorded."""
     model = get_chat_model("critic", project_id=project_id, temperature=0.3, seed_extra=direction.id)
-    prompt = [
-        SystemMessage(
-            content=render_prompt("critic", big_idea=direction.big_idea, headline=direction.copy.headline)
-        )
-    ]
+    prompt = render_prompt("critic", big_idea=direction.big_idea, headline=direction.copy.headline)
     raw = generate_structured(model, prompt, CritiqueScore)
     return raw.model_copy(update={"verdict": compute_verdict(raw), "critic_model": _model_name(model)})
 
@@ -200,7 +205,10 @@ def explore_territory(state: GraphState) -> dict:
             input_tokens=int(usage.get("input_tokens", 0) or 0),
             output_tokens=int(usage.get("output_tokens", 0) or 0),
         )
-        return {"directions": [direction], "costs": _visual_costs(direction, explore_cost)}
+        costs = _visual_costs(direction, explore_cost)
+        for rec in costs:  # tick the Studio cost footer live, per record
+            writer({"type": EventType.cost_recorded.value, **rec.model_dump()})
+        return {"directions": [direction], "costs": costs}
     except Exception as exc:  # noqa: BLE001 - a failed territory must not kill the run
         writer(
             {"type": EventType.agent_failed.value, "agent": "explore", "territory": label, "error": str(exc)}

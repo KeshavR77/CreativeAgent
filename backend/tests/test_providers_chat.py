@@ -18,6 +18,7 @@ def test_keyless_still_resolves_mock(clean_env) -> None:
 
 
 def test_resolve_model_name_per_role(clean_env) -> None:
+    clean_env.setenv("ANTHROPIC_API_KEY", "unit-test-key")  # anthropic provider
     clean_env.setenv("CLAUDE_MODEL", "claude-gen")
     clean_env.setenv("CRITIC_MODEL", "claude-critic")
     s = get_settings()
@@ -26,8 +27,57 @@ def test_resolve_model_name_per_role(clean_env) -> None:
 
 
 def test_critic_independence_violation_raises(clean_env) -> None:
+    clean_env.setenv("ANTHROPIC_API_KEY", "unit-test-key")  # anthropic provider
     clean_env.setenv("CLAUDE_MODEL", "claude-same")
     clean_env.setenv("CRITIC_MODEL", "claude-same")
+    with pytest.raises(ValueError):
+        resolve_model_name("critic", get_settings())
+
+
+def test_model_provider_autodetects_from_keys(clean_env) -> None:
+    assert get_settings().model_provider == "mock"  # keyless
+    clean_env.setenv("MODEL_API_KEY", "glm-key")
+    assert get_settings().model_provider == "openai_compatible"  # any OpenAI-compatible endpoint
+    clean_env.setenv("ANTHROPIC_API_KEY", "k")
+    assert get_settings().model_provider == "anthropic"  # anthropic wins the auto-detect
+    clean_env.setenv("MODEL_PROVIDER", "glm")
+    assert get_settings().model_provider == "openai_compatible"  # explicit override
+
+
+def test_openai_compatible_branch_constructs_with_base_url_and_key(clean_env, monkeypatch) -> None:
+    import sys
+    import types
+
+    clean_env.setenv("MODEL_API_KEY", "glm-key")  # -> openai_compatible provider
+    clean_env.setenv("MODEL_BASE_URL", "https://api.z.ai/api/paas/v4/")
+    clean_env.setenv("GENERATOR_MODEL", "glm-4.6")
+    clean_env.setenv("GENERATOR_CRITIC_MODEL", "glm-4.5-air")
+
+    captured: dict = {}
+
+    class FakeChatOpenAI:
+        def __init__(self, **kw):
+            captured.clear()
+            captured.update(kw)
+
+    fake_mod = types.ModuleType("langchain_openai")
+    fake_mod.ChatOpenAI = FakeChatOpenAI
+    monkeypatch.setitem(sys.modules, "langchain_openai", fake_mod)
+
+    get_chat_model("ideator", temperature=1.0)
+    assert captured["model"] == "glm-4.6"
+    assert captured["base_url"] == "https://api.z.ai/api/paas/v4/"
+    assert captured["temperature"] == 1.0
+    assert "api_key" in captured  # key wired through
+
+    get_chat_model("critic")
+    assert captured["model"] == "glm-4.5-air"  # distinct critic model
+
+
+def test_openai_compatible_enforces_critic_independence(clean_env) -> None:
+    clean_env.setenv("MODEL_API_KEY", "glm-key")
+    clean_env.setenv("GENERATOR_MODEL", "glm-4.6")
+    clean_env.setenv("GENERATOR_CRITIC_MODEL", "glm-4.6")  # same as generator -> violation
     with pytest.raises(ValueError):
         resolve_model_name("critic", get_settings())
 

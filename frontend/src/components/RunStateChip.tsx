@@ -1,35 +1,41 @@
-/** A small colored chip for a project's RunState. */
+/** RunStateChip — quiet mono state label with a status dot (pulsing when live). */
 import type { RunState } from '../api/types';
 
-const TONE: Record<string, string> = {
-  intake: 'bg-slate-700 text-slate-100',
-  interrogating: 'bg-slate-700 text-slate-100',
-  researching: 'bg-sky-800 text-sky-100',
-  strategizing: 'bg-sky-800 text-sky-100',
-  awaiting_strategy_approval: 'bg-amber-700 text-amber-50',
-  naming: 'bg-sky-800 text-sky-100',
-  briefing: 'bg-sky-800 text-sky-100',
-  seeding: 'bg-indigo-800 text-indigo-100',
-  exploring: 'bg-indigo-800 text-indigo-100',
-  diverging: 'bg-indigo-800 text-indigo-100',
-  awaiting_curation: 'bg-amber-700 text-amber-50',
-  refining: 'bg-indigo-800 text-indigo-100',
-  packaging: 'bg-emerald-800 text-emerald-100',
-  done: 'bg-emerald-700 text-emerald-50',
-  cancelled: 'bg-slate-600 text-slate-100',
-  error: 'bg-rose-800 text-rose-50',
-};
+// States where the machine is actively working (dot pulses).
+const LIVE = new Set([
+  'interrogating',
+  'researching',
+  'strategizing',
+  'naming',
+  'briefing',
+  'seeding',
+  'exploring',
+  'diverging',
+  'refining',
+  'packaging',
+]);
+
+// States waiting on a human decision.
+const GATED = new Set(['awaiting_strategy_approval', 'awaiting_curation']);
+
+function toneFor(state: string): { dot: string; text: string } {
+  if (GATED.has(state)) return { dot: 'bg-warn', text: 'text-warn' };
+  if (LIVE.has(state)) return { dot: 'dot-live', text: 'text-accent' };
+  if (state === 'done') return { dot: 'bg-ok', text: 'text-ok' };
+  if (state === 'error' || state === 'cancelled') return { dot: 'bg-accent', text: 'text-accent' };
+  return { dot: 'bg-faint', text: 'text-muted' };
+}
 
 export function RunStateChip({ state }: { state: RunState | string }) {
+  const tone = toneFor(state);
   return (
     <span
       data-testid="run-state-chip"
       data-state={state}
-      className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-        TONE[state] ?? 'bg-slate-700 text-slate-100'
-      }`}
+      className={`inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-kicker ${tone.text}`}
     >
-      {state}
+      <span className={`dot ${tone.dot}`} />
+      {state.replace(/_/g, ' ')}
     </span>
   );
 }

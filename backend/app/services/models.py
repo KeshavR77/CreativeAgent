@@ -1,8 +1,9 @@
 """Chat-model resolution + structured-output repair loop (§8.1/§8.4).
 
-`get_chat_model(role)` returns a mock model when `ANTHROPIC_API_KEY` is empty
-(keyless-first) and a real Claude model otherwise; the `critic` role resolves
-`CRITIC_MODEL` (the real-vs-real independence assertion lands in sub-plan 07).
+`get_chat_model(role)` is model-agnostic: keyless it returns the mock; otherwise
+it resolves the provider from config (`model_provider`) — Anthropic, or ANY
+OpenAI-compatible endpoint (GLM/z.ai, OpenAI, DeepSeek, …) via base_url + key. The
+`critic` role resolves a distinct critic model (real-vs-real independence enforced).
 
 `generate_structured` wraps `with_structured_output(..., include_raw=True)` with
 a one-shot repair loop: if the raw output does not parse, strip ``` fences and
@@ -13,6 +14,8 @@ graph's RetryPolicy excludes this error from retries).
 from __future__ import annotations
 
 import contextvars
+import logging
+import os
 import re
 from typing import Any, Type, TypeVar
 
@@ -23,6 +26,8 @@ from app.config import get_settings
 from app.services.mock_chat import MockChatModel
 
 T = TypeVar("T", bound=BaseModel)
+
+logger = logging.getLogger("app.models_svc")
 
 CRITIC_ROLE = "critic"
 
@@ -106,30 +111,82 @@ def generate_structured(model: Any, messages: Any, schema: Type[T]) -> T:
 def get_chat_model(
     role: str, *, project_id: str = "", temperature: float = 0.7, seed_extra: str = ""
 ) -> BaseChatModel:
-    """Resolve a chat model for `role`. Mock when keyless; real Claude otherwise.
+    """Resolve a chat model for `role`, model-agnostically.
 
-    ``seed_extra`` (e.g. a territory label) is folded into the mock seed so
-    parallel branches produce distinct, deterministic output — the basis for
-    measurable divergence (§8.2).
+    Mock when keyless; otherwise whichever provider ``settings.model_provider``
+    resolves to — Anthropic, or ANY OpenAI-compatible endpoint (GLM/z.ai, OpenAI,
+    DeepSeek, …). ``seed_extra`` (e.g. a territory label) is folded into the mock
+    seed so parallel branches produce distinct, deterministic output (§8.2).
     """
     settings = get_settings()
-    if settings.claude_mode == "mock":
+    provider = settings.model_provider
+    if provider == "mock":
+        # Loud when a keyed environment unexpectedly degrades to the mock —
+        # selection depends only on env/settings, so this firing on a keyed
+        # server means the env didn't reach this thread/process as expected.
+        logger.warning(
+            "get_chat_model resolved MOCK for role=%s (anthropic_key=%s model_key=%s cwd=%s)",
+            role,
+            bool(settings.ANTHROPIC_API_KEY),
+            bool(settings.MODEL_API_KEY),
+            os.getcwd(),
+        )
         return MockChatModel(seed=f"{project_id}:{role}:{temperature}:{seed_extra}", role=role)
-    # Real path — lazy-import so keyless boot never imports the Anthropic SDK.
-    from langchain_anthropic import ChatAnthropic
+    return _build_real_model(settings, provider, resolve_model_name(role, settings), temperature)
 
-    model_name = resolve_model_name(role, settings)
-    return ChatAnthropic(model=model_name, temperature=temperature, max_retries=2, streaming=True)
+
+def _build_real_model(settings, provider: str, model_name: str, temperature: float) -> BaseChatModel:
+    """Construct a real chat model. Imports are lazy so keyless boot (and an
+    Anthropic-only install) never needs another provider's SDK."""
+    if provider == "anthropic":
+        from langchain_anthropic import ChatAnthropic
+
+        # Key + base URL come from Settings (the same source as the provider
+        # DECISION), never implicitly from os.environ — otherwise a process
+        # where .env loaded but nothing was exported claims "real" and then
+        # authenticates with an empty key against the wrong host (§split-brain).
+        kwargs: dict = {}
+        if settings.ANTHROPIC_API_KEY:
+            kwargs["api_key"] = settings.ANTHROPIC_API_KEY
+        if settings.ANTHROPIC_BASE_URL:
+            kwargs["base_url"] = settings.ANTHROPIC_BASE_URL
+        # Explicit timeout: the SDK default (~10 min) lets one stalled stream hang
+        # a whole fan-out branch; 120s + retries fails fast and recovers instead.
+        return ChatAnthropic(
+            model=model_name,
+            temperature=temperature,
+            max_retries=5,
+            timeout=120.0,
+            streaming=True,
+            **kwargs,
+        )
+    if provider == "openai_compatible":
+        # Any OpenAI-compatible endpoint via base_url + key (needs langchain-openai).
+        from langchain_openai import ChatOpenAI
+
+        return ChatOpenAI(
+            model=model_name,
+            temperature=temperature,
+            max_retries=5,
+            timeout=120.0,
+            streaming=True,
+            api_key=settings.MODEL_API_KEY,
+            base_url=settings.MODEL_BASE_URL,
+        )
+    raise ValueError(f"unknown model provider: {provider!r}")
 
 
 def resolve_model_name(role: str, settings) -> str:
-    """Model id for a role. Enforces critic independence (§8.1): a real critic
-    must use a model distinct from the generator, or the critique isn't independent."""
+    """Generator vs critic model id for the active provider. Enforces critic
+    independence (§8.1): a real critic must use a model distinct from the
+    generator, or the critique isn't independent."""
+    generator = settings.active_generator_model
+    critic = settings.active_critic_model
     if role == CRITIC_ROLE:
-        if settings.CRITIC_MODEL == settings.CLAUDE_MODEL:
+        if critic == generator:
             raise ValueError(
-                "CRITIC_MODEL must differ from CLAUDE_MODEL when running real "
+                "critic model must differ from the generator model "
                 "(the critic must be independent of the generator)"
             )
-        return settings.CRITIC_MODEL
-    return settings.CLAUDE_MODEL
+        return critic
+    return generator

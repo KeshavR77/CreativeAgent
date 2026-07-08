@@ -13,7 +13,7 @@ export function ProvenanceTag({ image }: { image: ImageRef }) {
       <span
         data-testid="provenance-tag"
         data-kind="generated"
-        className="text-[10px] leading-tight text-slate-300"
+        className="font-mono text-[9px] leading-tight text-muted"
       >
         AI-generated · {image.gen_model}
       </span>
@@ -25,7 +25,7 @@ export function ProvenanceTag({ image }: { image: ImageRef }) {
       <span
         data-testid="provenance-tag"
         data-kind="sourced"
-        className="text-[10px] leading-tight text-slate-300"
+        className="font-mono text-[9px] leading-tight text-muted"
       >
         {image.provider} · {image.license} · ©{' '}
         {image.source_url ? (
@@ -33,7 +33,7 @@ export function ProvenanceTag({ image }: { image: ImageRef }) {
             href={image.source_url}
             target="_blank"
             rel="noreferrer noopener"
-            className="underline"
+            className="underline decoration-line underline-offset-2 hover:text-accent"
           >
             {image.attribution}
           </a>
@@ -49,7 +49,7 @@ export function ProvenanceTag({ image }: { image: ImageRef }) {
     <span
       data-testid="provenance-tag"
       data-kind="placeholder"
-      className="text-[10px] leading-tight text-amber-300"
+      className="font-mono text-[9px] leading-tight text-warn"
     >
       placeholder{image.caption ? ` — ${image.caption}` : ''}
     </span>

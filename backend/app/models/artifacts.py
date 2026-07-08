@@ -30,7 +30,11 @@ def _blank(value: Optional[str]) -> bool:
 ImageKind = Literal["generated", "sourced", "placeholder"]
 Verdict = Literal["ship", "revise", "kill"]
 DirectionStatus = Literal["draft", "promoted", "killed", "merged_away"]
-Brain = Literal["conceptial", "claude_high_temp", "mock"]
+# The ideator that produced a big_idea, recorded truthfully. Known values are
+# "conceptial", "claude_high_temp", "mock" — plus any configured provider label
+# (IDEATOR_FALLBACK, e.g. "glm") now that generation is model-agnostic. A plain
+# str, not a Literal: constraining it made every new provider a schema change.
+Brain = str
 
 
 # --------------------------------------------------------------------------- #

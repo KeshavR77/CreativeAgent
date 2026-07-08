@@ -22,8 +22,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 logger = logging.getLogger("app.config")
 
 # Directory layout: data/ and data/generated/ must exist at import/startup.
+# APP_DATA_DIR overrides the location — REQUIRED for tests: TestClient(app) runs
+# the real lifespan (registry + checkpointer + resume_all), and pointing that at
+# the live data/ lets a test run RESUME real in-flight projects under the test
+# env (mock, keyless) and checkpoint mock output into real runs.
 _BACKEND_ROOT = Path(__file__).resolve().parent.parent
-DATA_DIR = _BACKEND_ROOT / "data"
+DATA_DIR = Path(os.environ.get("APP_DATA_DIR") or (_BACKEND_ROOT / "data"))
 GENERATED_DIR = DATA_DIR / "generated"
 
 # Embeddings backends that resolve to "real" (case-insensitive).
@@ -61,10 +65,22 @@ class Settings(BaseSettings):
         case_sensitive=True,
     )
 
-    # --- Claude ---
+    # --- Claude / Anthropic-compatible endpoint (e.g. z.ai GLM) ---
     ANTHROPIC_API_KEY: str | None = None
+    ANTHROPIC_BASE_URL: str | None = None  # unset => api.anthropic.com
     CLAUDE_MODEL: str = "claude-sonnet-4-5"
     CRITIC_MODEL: str = "claude-opus-4-1"
+
+    # --- Model provider (model-agnostic generation) ---
+    # Auto-detected from keys unless MODEL_PROVIDER is set: ANTHROPIC_API_KEY ->
+    # "anthropic"; MODEL_API_KEY -> "openai_compatible"; else "mock". The
+    # "openai_compatible" provider covers ANY OpenAI-compatible endpoint — GLM/z.ai,
+    # OpenAI, DeepSeek, Together, Groq, Ollama — via MODEL_BASE_URL + MODEL_API_KEY.
+    MODEL_PROVIDER: str | None = None
+    MODEL_API_KEY: str | None = None
+    MODEL_BASE_URL: str = "https://api.z.ai/api/paas/v4/"  # default endpoint: GLM (z.ai)
+    GENERATOR_MODEL: str = "glm-4.6"             # generator model id (override per provider)
+    GENERATOR_CRITIC_MODEL: str = "glm-4.5-air"  # critic model id (MUST differ from the generator)
 
     # --- Conceptial ---
     CONCEPTIAL_BASE_URL: str | None = None
@@ -76,11 +92,19 @@ class Settings(BaseSettings):
     EMBEDDINGS_BACKEND: str | None = None
 
     # --- Image generation ---
+    # IMAGE_GEN_PROVIDER: fal | replicate | openai | zai | mock. "zai" reuses
+    # MODEL_API_KEY (or ZAI_API_KEY) — GLM chat + glm-image on one key.
     IMAGE_GEN_PROVIDER: str | None = None
     IMAGE_GEN_MODEL: str = "flux/schnell"
     FAL_KEY: str | None = None
     REPLICATE_API_TOKEN: str | None = None
     OPENAI_API_KEY: str | None = None
+    ZAI_API_KEY: str | None = None
+
+    @property
+    def zai_image_key(self) -> str | None:
+        """Key for the z.ai image lane: ZAI_API_KEY, else MODEL_API_KEY (one-key setups)."""
+        return self.ZAI_API_KEY if _non_empty(self.ZAI_API_KEY) else self.MODEL_API_KEY
 
     # --- Image sourcing ---
     IMAGE_SOURCE_PROVIDER: str | None = None
@@ -106,6 +130,33 @@ class Settings(BaseSettings):
     @property
     def claude_mode(self) -> str:
         return "real" if _non_empty(self.ANTHROPIC_API_KEY) else "mock"
+
+    @property
+    def model_provider(self) -> str:
+        """Active chat provider: 'anthropic' | 'openai_compatible' | 'mock'.
+
+        Explicit ``MODEL_PROVIDER`` wins; otherwise auto-detect from keys (Anthropic
+        first, then any OpenAI-compatible ``MODEL_API_KEY``, else the mock)."""
+        explicit = (self.MODEL_PROVIDER or "").strip().lower()
+        if explicit in ("anthropic", "claude"):
+            return "anthropic"
+        if explicit in ("openai_compatible", "openai-compatible", "openai", "glm", "zhipu", "zai"):
+            return "openai_compatible"
+        if explicit == "mock":
+            return "mock"
+        if _non_empty(self.ANTHROPIC_API_KEY):
+            return "anthropic"
+        if _non_empty(self.MODEL_API_KEY):
+            return "openai_compatible"
+        return "mock"
+
+    @property
+    def active_generator_model(self) -> str:
+        return self.CLAUDE_MODEL if self.model_provider == "anthropic" else self.GENERATOR_MODEL
+
+    @property
+    def active_critic_model(self) -> str:
+        return self.CRITIC_MODEL if self.model_provider == "anthropic" else self.GENERATOR_CRITIC_MODEL
 
     @property
     def conceptial_mode(self) -> str:
@@ -153,7 +204,9 @@ class Settings(BaseSettings):
         return {
             "status": "ok",
             "providers": {
-                "claude": self.claude_mode,
+                # "claude" is the historical key for the CHAT lane: real whenever
+                # ANY chat provider (anthropic-compat or openai-compat) is keyed.
+                "claude": "real" if self.model_provider != "mock" else "mock",
                 "conceptial": self.conceptial_mode,
                 "search": self.search_mode,
                 "embeddings": self.embeddings_mode,
@@ -171,6 +224,12 @@ class Settings(BaseSettings):
 
     def log_providers(self) -> None:
         """Emit exactly one INFO line per provider row (startup logs)."""
+        logger.info(
+            "model_provider=%s generator=%s critic=%s",
+            self.model_provider,
+            self.active_generator_model if self.model_provider != "mock" else "mock",
+            self.active_critic_model if self.model_provider != "mock" else "mock",
+        )
         logger.info("provider claude=%s", self.claude_mode)
         logger.info("provider conceptial=%s", self.conceptial_mode)
         logger.info("provider search=%s", self.search_mode)

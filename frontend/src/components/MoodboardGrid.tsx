@@ -38,7 +38,7 @@ function SourceToggle({
       type="button"
       disabled={disabled}
       onClick={() => onSwap(target)}
-      className="self-start rounded bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-200 disabled:opacity-40"
+      className="btn-bare self-start"
     >
       {label}
     </button>
@@ -52,8 +52,8 @@ export function MoodboardGrid({
 }: MoodboardGridProps) {
   return (
     <section data-testid="moodboard-grid" className="flex flex-col gap-2">
-      <h4 className="text-sm font-semibold text-slate-200">Moodboard</h4>
-      <div className="grid grid-cols-4 gap-2">
+      <h4 className="kicker">Moodboard</h4>
+      <div className="grid grid-cols-4 gap-3">
         {moodboard.map((item, index) => (
           <ImageTile
             key={`${item.url}-${index}`}

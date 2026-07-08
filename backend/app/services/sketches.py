@@ -28,15 +28,18 @@ _PLACEHOLDER_CAPTION = "sketch generation unavailable"
 def _prompts(big_idea: str, lens: str, n: int) -> list[str]:
     return [
         f"{_MEDIUMS[i % len(_MEDIUMS)]} exploring '{big_idea}' through the lens of {lens}; "
-        "no brand names, no logos, no legible text in the image"
+        "no brand names, no logos, no legible text in the image, "
+        "no words, no lettering, no characters or typography of any kind, in any language"
         for i in range(n)
     ]
 
 
 def _placeholder(project_id: str, direction_id: str) -> ImageRef:
+    from app.services.imagegen import ensure_placeholder
+
     return ImageRef(
         kind="placeholder",
-        url=f"/generated/{project_id}/{direction_id}/placeholder.png",
+        url=ensure_placeholder(project_id, direction_id, "placeholder.png"),
         provider="placeholder",
         license="none",
         caption=_PLACEHOLDER_CAPTION,
@@ -47,9 +50,14 @@ def generate(direction_id: str, big_idea: str, lens: str, *, project_id: str, n:
     count = n if n is not None else get_settings().SKETCH_COUNT
     prompts = _prompts(big_idea, lens, count)
     try:
-        return imagegen_generate(prompts, project_id=project_id, direction_id=direction_id)
+        refs = imagegen_generate(prompts, project_id=project_id, direction_id=direction_id)
     except ImageGenUnavailable:
         return [_placeholder(project_id, direction_id) for _ in range(count)]
+    # a partially-degraded batch (per-prompt fault isolation) backfills to count
+    refs = list(refs)
+    while len(refs) < count:
+        refs.append(_placeholder(project_id, direction_id))
+    return refs
 
 
 def regenerate_single(

@@ -20,6 +20,7 @@ from __future__ import annotations
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import RetryPolicy, Send
 
+from app.config import get_settings
 from app.graph.curation import curation_gate
 from app.graph.exploration import divergence_node, explore_territory, package, refine
 from app.graph.gates import strategy_gate
@@ -43,12 +44,15 @@ def _transient(exc: Exception) -> bool:
 
 
 def _route_to_territories(state: GraphState) -> list[Send]:
-    """Fan out one ``explore_territory`` branch per territory. A Send branch does
-    NOT see accumulated state, so all context travels in the payload."""
+    """Fan out one ``explore_territory`` branch per territory, capped at K. A real
+    model may overshoot the requested territory count; without the cap each extra
+    territory costs a full explore branch (chat + sketches + moodboard). A Send
+    branch does NOT see accumulated state, so all context travels in the payload."""
     project_id = state["project_id"]
     strategy = state.get("strategy")
     creative_brief = state.get("creative_brief")
     verbal_identity = state.get("verbal_identity")
+    k = max(2, get_settings().K)
     return [
         Send(
             "explore_territory",
@@ -60,7 +64,7 @@ def _route_to_territories(state: GraphState) -> list[Send]:
                 "verbal_identity": verbal_identity.model_dump() if verbal_identity is not None else None,
             },
         )
-        for territory in state.get("territories", [])
+        for territory in state.get("territories", [])[:k]
     ]
 
 

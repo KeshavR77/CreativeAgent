@@ -103,3 +103,27 @@ def test_ideate_falls_back_with_truthful_brain_when_conceptial_fails(clean_env, 
     monkeypatch.setattr(exploration, "conceptial_generate", _boom)
     _big_idea, brain = exploration.ideate_one("p1", Territory(label="Radical", lens="proof"))
     assert brain == "mock"
+
+
+def test_ideate_llm_brain_reflects_configured_provider(clean_env, monkeypatch) -> None:
+    """The LLM ideator labels `brain` provider-agnostically: the mock -> 'mock',
+    any real model -> the configured IDEATOR_FALLBACK. So swapping get_chat_model to
+    GLM (IDEATOR_FALLBACK='glm') labels the stage truthfully, not as Claude."""
+    from app.graph import exploration
+    from app.models.artifacts import Territory
+    from app.services.mock_chat import MockChatModel
+
+    clean_env.setenv("IDEATOR_FALLBACK", "glm")  # no conceptial -> LLM ideator path
+    monkeypatch.setattr(exploration, "generate_structured", lambda *a, **k: exploration.IdeaResult(big_idea="a GLM idea"))
+
+    class _RealModel:  # stand-in for a real ChatGLM/ChatAnthropic (i.e. not the mock)
+        pass
+
+    monkeypatch.setattr(exploration, "get_chat_model", lambda *a, **k: _RealModel())
+    big_idea, brain = exploration.ideate_one("p1", Territory(label="Radical", lens="proof"))
+    assert big_idea == "a GLM idea"
+    assert brain == "glm"  # the configured provider label, not a hardcoded "claude_high_temp"
+
+    monkeypatch.setattr(exploration, "get_chat_model", lambda *a, **k: MockChatModel(seed="s", role="ideator"))
+    _idea2, brain2 = exploration.ideate_one("p1", Territory(label="Radical", lens="proof"))
+    assert brain2 == "mock"  # the mock is always labelled truthfully

@@ -6,8 +6,20 @@ against a fully empty environment (the keyless-first invariant).
 
 from __future__ import annotations
 
+import os
+import tempfile
+
 import pytest
 import pytest_asyncio
+
+# CRITICAL — isolate the app's on-disk stores BEFORE any app module is imported.
+# app.config computes DATA_DIR at import; app.main's lifespan (run by every
+# TestClient(app)) opens the registry + graph checkpointer there and calls
+# resume_all(). Without this override a test run RESUMES the operator's real
+# in-flight projects under the test env (keyless => mock) and checkpoints mock
+# output into their real runs. Set once per test session, honored via
+# APP_DATA_DIR in app.config.
+os.environ.setdefault("APP_DATA_DIR", tempfile.mkdtemp(prefix="creativeagent-tests-"))
 
 # Every environment variable that drives provider resolution or tuning.
 # Cleared so the empty-env contract is exercised deterministically.

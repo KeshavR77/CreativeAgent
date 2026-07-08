@@ -76,16 +76,20 @@ def _completed(write, agent: str, artifact: str) -> None:
     write({"type": EventType.agent_completed.value, "agent": agent})
 
 
-def _cost(agent: str, model) -> CostRecord:
+def _cost(agent: str, model, write=None) -> CostRecord:
     """Cost for the most recent structured call (real token counts when running a
-    real model; 0 for the mock)."""
+    real model; 0 for the mock). When ``write`` is given, also emits the
+    ``cost_recorded`` event so the Studio cost footer ticks live."""
     usage = last_usage()
-    return CostRecord(
+    rec = CostRecord(
         agent=agent,
         model=model._llm_type,
         input_tokens=int(usage.get("input_tokens", 0) or 0),
         output_tokens=int(usage.get("output_tokens", 0) or 0),
     )
+    if write is not None:
+        write({"type": EventType.cost_recorded.value, **rec.model_dump()})
+    return rec
 
 
 def interrogate(state: GraphState) -> dict:
@@ -123,7 +127,7 @@ def research(state: GraphState) -> dict:
     dossier: ResearchDossier = generate_structured(model, prompt, ResearchDossier)
     dossier = dossier.model_copy(update={"sources": sources})
     _completed(write, "research", "research")
-    return {"research": dossier, "costs": [_cost("research", model)]}
+    return {"research": dossier, "costs": [_cost("research", model, write)]}
 
 
 def strategize(state: GraphState) -> dict:
@@ -140,7 +144,7 @@ def strategize(state: GraphState) -> dict:
     )
     strategy: Strategy = generate_structured(model, prompt, Strategy)
     _completed(write, "strategize", "strategy")
-    return {"strategy": strategy, "costs": [_cost("strategize", model)]}
+    return {"strategy": strategy, "costs": [_cost("strategize", model, write)]}
 
 
 def verbal(state: GraphState) -> dict:
@@ -156,7 +160,7 @@ def verbal(state: GraphState) -> dict:
     )
     identity: VerbalIdentity = generate_structured(model, prompt, VerbalIdentity)
     _completed(write, "verbal", "verbal_identity")
-    return {"verbal_identity": identity, "costs": [_cost("verbal", model)]}
+    return {"verbal_identity": identity, "costs": [_cost("verbal", model, write)]}
 
 
 def briefwrite(state: GraphState) -> dict:
@@ -172,7 +176,7 @@ def briefwrite(state: GraphState) -> dict:
     )
     creative_brief: CreativeBrief = generate_structured(model, prompt, CreativeBrief)
     _completed(write, "briefwrite", "creative_brief")
-    return {"creative_brief": creative_brief, "costs": [_cost("briefwrite", model)]}
+    return {"creative_brief": creative_brief, "costs": [_cost("briefwrite", model, write)]}
 
 
 def seed(state: GraphState) -> dict:
@@ -188,4 +192,4 @@ def seed(state: GraphState) -> dict:
     )
     result: SeedResult = generate_structured(model, prompt, SeedResult)
     _completed(write, "seed", "territories")
-    return {"territories": result.territories, "costs": [_cost("seed", model)]}
+    return {"territories": result.territories, "costs": [_cost("seed", model, write)]}

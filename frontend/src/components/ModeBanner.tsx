@@ -13,7 +13,7 @@ export function ModeBanner({ highTemp }: { highTemp?: boolean }) {
 
   const mockedProviders = health
     ? Object.entries(health.providers)
-        .filter(([, mode]) => mode !== 'live')
+        .filter(([, mode]) => mode !== 'real')
         .map(([name]) => name)
     : [];
 
@@ -21,7 +21,7 @@ export function ModeBanner({ highTemp }: { highTemp?: boolean }) {
     <div
       data-testid="mode-banner"
       role="status"
-      className="flex flex-wrap items-center gap-2 rounded border border-amber-700 bg-amber-950/60 px-3 py-1.5 text-xs text-amber-100"
+      className="flex flex-wrap items-center gap-2 rounded-sm border border-warn/40 bg-warnSoft px-3 py-2 font-mono text-[11px] text-warn"
     >
       {mocked ? (
         <span>
@@ -33,7 +33,7 @@ export function ModeBanner({ highTemp }: { highTemp?: boolean }) {
       {highTemp ? (
         <span
           data-testid="high-temp-badge"
-          className="rounded bg-fuchsia-800 px-1.5 py-0.5 text-[10px] text-fuchsia-100"
+          className="rounded-sm border border-warn/40 px-1.5 py-0.5 text-[10px]"
         >
           ideator: claude_high_temp
         </span>

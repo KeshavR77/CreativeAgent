@@ -80,18 +80,16 @@ export function EditableField({
     <div
       data-testid={`editable-${field}`}
       data-pending={pending ? 'true' : 'false'}
-      className="flex flex-col gap-0.5 rounded border border-slate-800 p-2"
+      className="group/field flex flex-col gap-1 border-b border-line py-2"
     >
       <div className="flex items-center justify-between">
-        <span className="text-[10px] uppercase tracking-wide text-slate-400">
-          {label ?? field}
-        </span>
+        <span className="kicker">{label ?? field}</span>
         {!editing ? (
           <button
             type="button"
             disabled={disabled}
             onClick={startEdit}
-            className="text-[10px] text-sky-300 disabled:opacity-40"
+            className="btn-bare opacity-0 transition-opacity focus:opacity-100 group-hover/field:opacity-100"
           >
             Edit
           </button>
@@ -99,33 +97,31 @@ export function EditableField({
       </div>
 
       {editing ? (
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-2">
           <textarea
             aria-label={`Edit ${field}`}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            className="w-full rounded bg-slate-950 p-1 text-sm text-slate-100"
+            className="field"
             rows={2}
           />
           <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={save}
-              className="rounded bg-sky-700 px-2 py-0.5 text-xs text-white"
-            >
+            <button type="button" onClick={save} className="btn-ink">
               Save
             </button>
             <button
               type="button"
               onClick={() => setEditing(false)}
-              className="rounded bg-slate-700 px-2 py-0.5 text-xs text-slate-100"
+              className="btn-ghost"
             >
               Cancel
             </button>
           </div>
         </div>
       ) : (
-        <span className="text-sm text-slate-100">{displayText(display)}</span>
+        <span className={`text-[14px] leading-relaxed text-ink ${pending ? 'opacity-60' : ''}`}>
+          {displayText(display)}
+        </span>
       )}
     </div>
   );

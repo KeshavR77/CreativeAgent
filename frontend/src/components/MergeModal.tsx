@@ -45,42 +45,36 @@ export function MergeModal({ directions, onMerge, onClose }: MergeModalProps) {
       role="dialog"
       aria-label="Merge directions"
       data-testid="merge-modal"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4"
     >
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-auto rounded-lg bg-slate-900 p-4">
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-slate-100">
-            Merge directions
-          </h3>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-sm text-slate-400"
-          >
+      <div className="panel max-h-[90vh] w-full max-w-2xl overflow-auto p-6">
+        <div className="mb-4 flex items-baseline justify-between">
+          <h3 className="font-serif text-xl text-ink">Merge directions</h3>
+          <button type="button" onClick={onClose} className="btn-bare">
             Close
           </button>
         </div>
 
-        <p className="mb-3 text-xs text-slate-400">
+        <p className="mb-4 text-[13px] leading-relaxed text-muted">
           Choose which parent contributes each field. The moodboard is picked as a
           whole board.
         </p>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col">
           {MERGE_FIELDS.map((field) => (
             <div
               key={field}
               data-testid={`merge-field-${field}`}
-              className="flex items-center justify-between gap-4 rounded border border-slate-800 p-2"
+              className="flex items-center justify-between gap-4 border-b border-line py-2.5"
             >
-              <span className="text-xs font-medium text-slate-200">
+              <span className="font-mono text-[11px] text-ink-soft">
                 {field === 'moodboard' ? 'moodboard (whole board)' : field}
               </span>
-              <div className="flex gap-3">
+              <div className="flex gap-4">
                 {directions.map((d) => (
                   <label
                     key={d.id}
-                    className="flex items-center gap-1 text-xs text-slate-300"
+                    className="flex cursor-pointer items-center gap-1.5 font-mono text-[10px] text-muted"
                   >
                     <input
                       type="radio"
@@ -90,6 +84,7 @@ export function MergeModal({ directions, onMerge, onClose }: MergeModalProps) {
                       onChange={() =>
                         setChoices((prev) => ({ ...prev, [field]: d.id }))
                       }
+                      className="accent-ink"
                     />
                     {d.id}
                   </label>
@@ -99,20 +94,11 @@ export function MergeModal({ directions, onMerge, onClose }: MergeModalProps) {
           ))}
         </div>
 
-        <div className="mt-4 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded bg-slate-700 px-3 py-1 text-sm text-slate-100"
-          >
+        <div className="mt-5 flex justify-end gap-2">
+          <button type="button" onClick={onClose} className="btn-ghost">
             Cancel
           </button>
-          <button
-            type="button"
-            disabled={busy}
-            onClick={submit}
-            className="rounded bg-emerald-700 px-3 py-1 text-sm text-white disabled:opacity-40"
-          >
+          <button type="button" disabled={busy} onClick={submit} className="btn-ink">
             Merge
           </button>
         </div>

@@ -12,3 +12,4 @@ __pycache__/
 frontend/dist/
 backend/*.egg-info/
 coverage/
+scratch_*.log

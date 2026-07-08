@@ -14,6 +14,7 @@ import { useProjectStore, routeForState } from '../store/useProjectStore';
 import { useProjectSync } from '../store/useProjectSync';
 import { ModeBanner } from '../components/ModeBanner';
 import { RunStateChip } from '../components/RunStateChip';
+import { Shell } from '../components/Shell';
 import type { RunState } from '../api/types';
 
 const PIPELINE: { key: RunState; label: string }[] = [
@@ -36,7 +37,7 @@ const PIPELINE: { key: RunState; label: string }[] = [
 function PipelineSpine({ state }: { state: RunState | string }) {
   const activeIndex = PIPELINE.findIndex((p) => p.key === state);
   return (
-    <ol data-testid="pipeline-spine" className="flex flex-wrap gap-1">
+    <ol data-testid="pipeline-spine" className="flex flex-wrap gap-x-5 gap-y-2 border-b border-line pb-5">
       {PIPELINE.map((node, i) => {
         const done = activeIndex > i;
         const active = activeIndex === i;
@@ -45,15 +46,13 @@ function PipelineSpine({ state }: { state: RunState | string }) {
             key={node.key}
             data-active={active}
             data-done={done}
-            className={`rounded px-2 py-0.5 text-[10px] ${
-              active
-                ? 'bg-sky-600 text-white'
-                : done
-                  ? 'bg-slate-700 text-slate-300'
-                  : 'bg-slate-900 text-slate-500'
+            className={`flex items-baseline gap-1.5 font-mono text-[10px] uppercase tracking-kicker ${
+              active ? 'text-accent' : done ? 'text-ink' : 'text-faint'
             }`}
           >
+            <span className="text-[9px]">{String(i + 1).padStart(2, '0')}</span>
             {node.label}
+            {active ? <span className="dot dot-live ml-0.5" /> : null}
           </li>
         );
       })}
@@ -65,7 +64,7 @@ function AgentStream({ text }: { text: string }) {
   return (
     <pre
       data-testid="agent-stream"
-      className="max-h-48 overflow-auto whitespace-pre-wrap rounded border border-slate-800 bg-slate-950 p-2 text-xs text-slate-300"
+      className="max-h-72 overflow-auto whitespace-pre-wrap border-l-2 border-line pl-4 font-mono text-[11px] leading-relaxed text-ink-soft"
     >
       {text || '…waiting for the agents to start…'}
     </pre>
@@ -79,7 +78,7 @@ function CostFooter() {
   return (
     <footer
       data-testid="cost-footer"
-      className="flex items-center justify-between rounded border border-slate-800 bg-slate-900 px-3 py-1.5 text-xs text-slate-300"
+      className="flex items-center justify-between border-t border-line pt-3 font-mono text-[10px] uppercase tracking-kicker text-muted"
     >
       <span>{costs.length} provider call(s)</span>
       <span>
@@ -110,55 +109,71 @@ export default function Studio() {
   }, [id, view, navigate]);
 
   return (
-    <main className="mx-auto flex max-w-4xl flex-col gap-4 p-6 text-slate-100">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Studio</h1>
-        <RunStateChip state={state} />
-      </div>
+    <Shell surface="Studio" right={<RunStateChip state={state} />}>
+      <div className="flex flex-col gap-8">
+        <ModeBanner highTemp={usedHighTemp} />
+        <PipelineSpine state={state} />
 
-      <ModeBanner highTemp={usedHighTemp} />
-      <PipelineSpine state={state} />
-
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div className="flex flex-col gap-2">
-          <h2 className="text-sm font-semibold text-slate-300">Agent stream</h2>
-          <AgentStream text={agentStream} />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <h2 className="text-sm font-semibold text-slate-300">Directions</h2>
-          <div data-testid="lane-grid" className="grid grid-cols-2 gap-2">
-            {(view?.directions ?? []).length === 0 ? (
-              <p className="col-span-2 text-xs text-slate-500">
-                Directions will appear here as they are explored…
-              </p>
-            ) : (
-              (view?.directions ?? []).map((d) => (
-                <div
-                  key={d.id}
-                  data-testid="lane-card"
-                  className="rounded border border-slate-800 bg-slate-900 p-2"
-                >
-                  <div className="mb-1 flex items-center gap-1">
-                    <span className="truncate text-xs font-medium">
-                      {d.territory.label || 'exploring…'}
-                    </span>
-                    <span className="ml-auto rounded bg-slate-800 px-1 text-[9px] text-slate-300">
-                      {d.brain}
-                    </span>
-                  </div>
-                  <div className="aspect-video rounded bg-slate-800" />
-                  <p className="mt-1 truncate text-[11px] text-slate-400">
-                    {d.big_idea || '…'}
-                  </p>
-                </div>
-              ))
-            )}
+        <section className="grid grid-cols-1 gap-10 md:grid-cols-2">
+          <div className="flex flex-col gap-3">
+            <h2 className="kicker">Agent stream</h2>
+            <AgentStream text={agentStream} />
           </div>
-        </div>
-      </section>
 
-      <CostFooter />
-    </main>
+          <div className="flex flex-col gap-3">
+            <h2 className="kicker">Directions</h2>
+            <div data-testid="lane-grid" className="grid grid-cols-2 gap-3">
+              {(view?.directions ?? []).length === 0 && (view?.territories ?? []).length > 0 ? (
+                // Territories are seeded before branches land: show one skeleton
+                // lane per territory so the fan-out is visible while it works.
+                (view?.territories ?? []).map((t) => (
+                  <div key={t.label} data-testid="lane-skeleton" className="panel flex flex-col gap-2 p-3">
+                    <div className="flex items-baseline gap-2">
+                      <span className="truncate font-serif text-[15px] text-ink">{t.label}</span>
+                      <span className="dot dot-live ml-auto shrink-0" />
+                    </div>
+                    <div className="aspect-video animate-pulse rounded-sm bg-paper" />
+                    <p className="truncate text-[12px] text-muted">{t.lens || 'exploring…'}</p>
+                  </div>
+                ))
+              ) : (view?.directions ?? []).length === 0 ? (
+                <p className="col-span-2 text-[13px] text-muted">
+                  Directions will appear here as they are explored…
+                </p>
+              ) : (
+                (view?.directions ?? []).map((d) => (
+                  <div
+                    key={d.id}
+                    data-testid="lane-card"
+                    className="panel flex flex-col gap-2 p-3"
+                  >
+                    <div className="flex items-baseline gap-2">
+                      <span className="truncate font-serif text-[15px] text-ink">
+                        {d.territory.label || 'exploring…'}
+                      </span>
+                      <span className="ml-auto shrink-0 font-mono text-[9px] uppercase tracking-kicker text-muted">
+                        {d.brain}
+                      </span>
+                    </div>
+                    {d.sketches?.[0] ? (
+                      <img
+                        src={d.sketches[0].url}
+                        alt=""
+                        className="aspect-video w-full rounded-sm border border-line object-cover"
+                      />
+                    ) : (
+                      <div className="aspect-video rounded-sm bg-paper" />
+                    )}
+                    <p className="truncate text-[12px] text-muted">{d.big_idea || '…'}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </section>
+
+        <CostFooter />
+      </div>
+    </Shell>
   );
 }

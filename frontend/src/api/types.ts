@@ -16,7 +16,7 @@
 export type ImageKind = 'generated' | 'sourced' | 'placeholder';
 export type Verdict = 'ship' | 'revise' | 'kill';
 export type DirectionStatus = 'draft' | 'promoted' | 'killed' | 'merged_away';
-export type Brain = 'conceptial' | 'claude_high_temp' | 'mock';
+export type Brain = string; // provider label, e.g. 'conceptial' | 'claude_high_temp' | 'mock' | 'glm'
 
 // backend/app/models/artifacts.py :: SourceRef
 export interface SourceRef {

@@ -29,13 +29,14 @@ export function ImageTile({ image, onRegenerate, busy, controls }: ImageTileProp
       data-testid="image-tile"
       data-kind={image.kind}
       title={hoverTitle(image)}
-      className="relative flex flex-col gap-1 rounded-md border border-slate-700 bg-slate-900 p-1"
+      className="group relative flex flex-col gap-1.5"
     >
-      <div className="relative aspect-square w-full overflow-hidden rounded bg-slate-800">
+      <div className="relative aspect-square w-full overflow-hidden rounded-sm border border-line bg-paper">
         <img
           src={image.url}
           alt={image.caption ?? image.gen_prompt ?? 'concept image'}
           className="h-full w-full object-cover"
+          loading="lazy"
         />
         {onRegenerate ? (
           <button
@@ -44,7 +45,7 @@ export function ImageTile({ image, onRegenerate, busy, controls }: ImageTileProp
             title="Regenerate"
             disabled={busy}
             onClick={onRegenerate}
-            className="absolute right-1 top-1 rounded bg-slate-950/80 px-1.5 py-0.5 text-xs text-slate-100 disabled:opacity-40"
+            className="absolute right-1.5 top-1.5 rounded-sm bg-ink/70 px-1.5 py-0.5 font-mono text-[11px] text-paper opacity-0 transition-opacity duration-150 focus:opacity-100 group-hover:opacity-100 disabled:opacity-30"
           >
             ⟳
           </button>

@@ -22,7 +22,7 @@ _PLACEHOLDER_CAPTION = "moodboard image unavailable"
 def _placeholder(project_id: str, direction_id: str) -> ImageRef:
     return ImageRef(
         kind="placeholder",
-        url=f"/generated/{project_id}/{direction_id}/moodboard-placeholder.png",
+        url=imagegen.ensure_placeholder(project_id, direction_id, "moodboard-placeholder.png"),
         provider="placeholder",
         license="none",
         caption=_PLACEHOLDER_CAPTION,
@@ -34,7 +34,11 @@ def _gen_prompts(moods: list[str], imagery: str, palette, n: int) -> list[str]:
     base = f"moodboard tile — {imagery}; mood: {', '.join(moods)}"
     if palette_str:
         base += f"; palette {palette_str}"
-    return [f"{base}; variation {i + 1}; no brand names, no logos, no legible text" for i in range(n)]
+    return [
+        f"{base}; variation {i + 1}; no brand names, no logos, no legible text, "
+        "no words, no lettering, no characters or typography of any kind, in any language"
+        for i in range(n)
+    ]
 
 
 def _src_queries(moods: list[str], imagery: str) -> list[str]:

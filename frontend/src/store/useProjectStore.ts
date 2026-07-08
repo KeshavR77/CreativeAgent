@@ -100,12 +100,11 @@ export const useProjectStore = create<ProjectState>((set) => ({
   setHealth: (health) => {
     const p = health.providers;
     // The backend reports each provider as "real" or "mock" (backend/app/config.py
-    // health_snapshot). "mocked" == any provider not running for real.
-    const mocked =
-      p.claude !== 'real' ||
-      p.conceptial !== 'real' ||
-      p.search !== 'real' ||
-      p.embeddings !== 'real';
+    // health_snapshot). "mocked" == the REASONING engine is on the mock: chat is
+    // what makes outputs real or illustrative. Conceptial/search/embeddings are
+    // optional lanes with truthful per-artifact fallbacks (brain labels,
+    // provenance tags), so they don't flip the whole-run banner.
+    const mocked = p.claude !== 'real';
     // image-gen "mocked" == not enabled with a real provider
     const imageGenMocked = !health.image_gen.enabled;
     set({ health, mocked, imageGenMocked });
@@ -193,10 +192,36 @@ export const useProjectStore = create<ProjectState>((set) => ({
           break;
         }
         case 'agent_started': {
-          // a fresh agent segment — keep prior transcript, add a separator marker.
+          // Narrate the run: one line per agent lifecycle event. (Token-level
+          // streaming lands on 'agent_token' below when the backend emits it.)
+          const territory = data.territory ? ` — ${data.territory as string}` : '';
+          const line = `▸ ${(data.agent as string) ?? 'agent'}${territory}`;
           patch.agentStream = state.agentStream
-            ? state.agentStream + '\n'
-            : state.agentStream;
+            ? `${state.agentStream}\n${line}`
+            : line;
+          break;
+        }
+        case 'agent_completed': {
+          const line = `  ✓ ${(data.agent as string) ?? 'agent'} complete`;
+          patch.agentStream = state.agentStream
+            ? `${state.agentStream}\n${line}`
+            : line;
+          break;
+        }
+        case 'agent_failed': {
+          const line = `  ✗ ${(data.agent as string) ?? 'agent'} failed${
+            data.territory ? ` — ${data.territory as string}` : ''
+          }`;
+          patch.agentStream = state.agentStream
+            ? `${state.agentStream}\n${line}`
+            : line;
+          break;
+        }
+        case 'artifact_written': {
+          const line = `  · ${(data.artifact as string) ?? 'artifact'} written`;
+          patch.agentStream = state.agentStream
+            ? `${state.agentStream}\n${line}`
+            : line;
           break;
         }
         case 'agent_token': {
