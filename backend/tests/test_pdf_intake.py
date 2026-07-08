@@ -12,7 +12,7 @@ from app.main import app
 from app.services import pdf_intake
 
 # The real 4-page Cerebelly RFP committed at the repo root — the canonical fixture.
-_RFP = Path(__file__).resolve().parents[2] / "MockBrief.pdf"
+_RFP = Path(__file__).resolve().parents[2] / "cerebelly-sample-rfp.pdf"
 
 
 @pytest.fixture
