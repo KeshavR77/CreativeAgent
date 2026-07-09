@@ -125,11 +125,13 @@ describe('applyEvent reducer (per event type)', () => {
     expect(useProjectStore.getState().view!.directions).toHaveLength(1);
   });
 
-  it('direction_updated records the change discriminator on the direction', () => {
+  it('direction_updated is signal-only: advances lastSeq, leaves the view intact (refetch re-syncs)', () => {
     const st = useProjectStore.getState();
     st.setView(makeView({ directions: [makeDirection('d1')] }));
+    const before = useProjectStore.getState().view!.directions[0];
     st.applyEvent(ev(4, 'direction_updated', { direction_id: 'd1', change: 'edit' }));
-    expect(useProjectStore.getState().view!.directions[0].lastChange).toBe('edit');
+    expect(useProjectStore.getState().view!.directions[0]).toEqual(before);
+    expect(useProjectStore.getState().lastSeq).toBe(4);
   });
 
   it('divergence_computed stores the {min, mean, warning} report', () => {

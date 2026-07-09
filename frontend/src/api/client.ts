@@ -14,8 +14,10 @@ import type {
   CreateProjectBody,
   DivergenceReport,
   EditableField,
+  GateIdeationBody,
   GateStrategyBody,
   HealthSnapshot,
+  IdeationMode,
   ImageKind,
   ProjectSummary,
   ProjectView,
@@ -84,9 +86,10 @@ export const api = {
     post<{ id: string; state: string }>('/projects', body),
 
   // Upload a client RFP PDF; the backend distills a Brief and seeds a project.
-  createProjectFromPdf: (file: File) => {
+  createProjectFromPdf: (file: File, ideationMode: IdeationMode = 'internal') => {
     const fd = new FormData();
     fd.append('file', file);
+    fd.append('ideation_mode', ideationMode);
     return request<{ id: string; state: string; brief: Brief }>('/projects/from-pdf', {
       method: 'POST',
       body: fd,
@@ -104,6 +107,12 @@ export const api = {
 
   resolveStrategyGate: (id: string, body: GateStrategyBody) =>
     post<ProjectView>(`/projects/${id}/gates/strategy`, body),
+
+  // ---- ideation gate (manual mode): download packet, submit ideas, proceed ----
+  resolveIdeationGate: (id: string, body: GateIdeationBody) =>
+    post<ProjectView>(`/projects/${id}/gates/ideation`, body),
+
+  ideationPacketUrl: (id: string) => `${BASE}/projects/${id}/ideation-packet.md`,
 
   // ---- direction ops (all require awaiting_curation; 409 otherwise) ----
   promote: (id: string, did: string) =>

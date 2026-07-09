@@ -10,13 +10,33 @@ import { api, ApiError } from '../api/client';
 import { routeForState } from '../store/useProjectStore';
 import { RunStateChip } from '../components/RunStateChip';
 import { Shell } from '../components/Shell';
-import type { ProjectSummary } from '../api/types';
+import type { IdeationMode, ProjectSummary } from '../api/types';
+
+// How ideas get brainstormed for this engagement (backend ideation_mode).
+const MODES: { value: IdeationMode; label: string; blurb: string }[] = [
+  {
+    value: 'internal',
+    label: 'In-house',
+    blurb: 'The model ideates end-to-end — fastest path.',
+  },
+  {
+    value: 'manual',
+    label: 'External studio',
+    blurb: 'Pause for a downloadable packet; brainstorm with any tool, paste ideas back for critique.',
+  },
+  {
+    value: 'conceptial',
+    label: 'Auto loop',
+    blurb: 'Brainstorm ⇄ critique rounds, automatically (Conceptial when configured).',
+  },
+];
 
 export default function ProjectList() {
   const navigate = useNavigate();
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
   const [brief, setBrief] = useState('');
   const [brand, setBrand] = useState('');
+  const [mode, setMode] = useState<IdeationMode>('internal');
   const [busy, setBusy] = useState(false);
   const [busyLabel, setBusyLabel] = useState('');
   const [dragging, setDragging] = useState(false);
@@ -52,6 +72,7 @@ export default function ProjectList() {
       const { id } = await api.createProject({
         brief: brief.trim(),
         brand_name: brand.trim() || undefined,
+        ideation_mode: mode,
       });
       await launch(id);
     } catch (err) {
@@ -70,7 +91,7 @@ export default function ProjectList() {
     setBusyLabel('Reading the RFP…');
     setError(null);
     try {
-      const { id } = await api.createProjectFromPdf(file);
+      const { id } = await api.createProjectFromPdf(file, mode);
       setBusyLabel('Brief understood — starting…');
       await launch(id);
     } catch (err) {
@@ -93,6 +114,35 @@ export default function ProjectList() {
       {/* Primary entry: drop an RFP PDF */}
       <div className="mb-8">
         <p className="kicker mb-3">New engagement</p>
+
+        {/* Ideation mode — how ideas get brainstormed for this engagement */}
+        <div role="radiogroup" aria-label="Ideation mode" className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
+          {MODES.map((m) => {
+            const selected = mode === m.value;
+            return (
+              <button
+                key={m.value}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                disabled={busy}
+                onClick={() => setMode(m.value)}
+                className={`flex flex-col gap-1 rounded-sm border p-3 text-left transition-colors ${
+                  selected ? 'border-ink bg-panel' : 'border-line bg-transparent hover:border-faint'
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <span className={`dot ${selected ? 'bg-accent' : 'bg-faint'}`} />
+                  <span className="font-mono text-[10px] uppercase tracking-kicker text-ink">
+                    {m.label}
+                  </span>
+                </span>
+                <span className="text-[12px] leading-snug text-muted">{m.blurb}</span>
+              </button>
+            );
+          })}
+        </div>
+
         <button
           type="button"
           disabled={busy}

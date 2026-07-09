@@ -57,6 +57,7 @@ async def lifespan(app: FastAPI):
         app.state.bus = bus
         app.state.run_manager = run_manager
         app.state.pending_briefs = {}
+        app.state.pending_modes = {}  # project_id -> ideation_mode chosen at create
 
         # Boot recovery (§9.5): re-drive any run left mid-flight by a previous
         # process from its last checkpoint. No-op on a clean start.

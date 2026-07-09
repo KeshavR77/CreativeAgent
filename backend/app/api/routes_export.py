@@ -11,9 +11,79 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException, Request, Response
 
 from app.models.artifacts import ConceptPackage, ImageRef
+from app.models.views import ProjectView
 from app.services import tokens as tokens_svc
 
 router = APIRouter(prefix="/api")
+
+
+# --------------------------------------------------------------------------- #
+# ideation packet renderer (pure)                                              #
+# --------------------------------------------------------------------------- #
+def render_ideation_packet(view: ProjectView) -> str:
+    """The take-anywhere brainstorm packet (manual ideation mode): everything an
+    external creative LLM/agent needs — the approved strategy context and the
+    creative territories — plus the exact return format the ideation gate parses
+    deterministically. LLM-free and safe to regenerate at any time."""
+    lines: list[str] = []
+    brief_text = view.brief.brief if view.brief is not None else ""
+    lines.append("# Ideation packet")
+    lines.append("")
+    lines.append(
+        "You are a world-class creative ideator. Brainstorm BIG IDEAS for the "
+        "creative territories below, grounded in the strategy. Go further than "
+        "the obvious: distinctive, ownable, executable ideas — not taglines."
+    )
+    lines.append("")
+    lines.append("## Brief")
+    lines.append(brief_text)
+    if view.brief is not None and view.brief.audience:
+        lines.append(f"\nAudience: {view.brief.audience}")
+    if view.brief is not None and view.brief.constraints:
+        lines.append("\nConstraints:")
+        lines.extend(f"- {c}" for c in view.brief.constraints)
+    if view.research is not None:
+        lines.append("\n## Research summary")
+        lines.append(view.research.summary)
+    if view.strategy is not None:
+        lines.append("\n## Approved strategy")
+        lines.append(view.strategy.positioning)
+        lines.append(f"\nKey message: {view.strategy.key_message}")
+        if view.strategy.pillars:
+            lines.append("Pillars: " + " · ".join(view.strategy.pillars))
+    if view.verbal_identity is not None:
+        lines.append("\n## Verbal identity")
+        lines.append(f"Tagline: {view.verbal_identity.tagline} (tone: {view.verbal_identity.tone})")
+    if view.creative_brief is not None:
+        lines.append("\n## Creative brief")
+        lines.append(view.creative_brief.objective)
+        if view.creative_brief.mandatories:
+            lines.append("Mandatories: " + " · ".join(view.creative_brief.mandatories))
+    lines.append("\n## Creative territories")
+    for t in view.territories:
+        lines.append(f"\n### {t.label}")
+        lines.append(f"Lens: {t.lens}")
+        if t.description:
+            lines.append(t.description)
+    lines.append("\n---\n")
+    lines.append("## What to return")
+    lines.append(
+        "Return ONE OR MORE big ideas per territory, in exactly this format "
+        "(repeat a heading for multiple ideas on the same territory):"
+    )
+    lines.append("")
+    for t in view.territories[:1] or []:
+        lines.append(f"### {t.label}")
+    if not view.territories:
+        lines.append("### <territory label>")
+    lines.append("<the big idea: 2–5 sentences, concrete enough to brief a designer>")
+    lines.append("")
+    lines.append(
+        "Use the exact territory headings above. Paste your full output back "
+        "into the ideation gate; each idea will be critiqued by an independent "
+        "reviewer so you can iterate before the build continues."
+    )
+    return "\n".join(lines) + "\n"
 
 
 # --------------------------------------------------------------------------- #
@@ -123,6 +193,24 @@ async def _packages_and_brief(request: Request, project_id: str, direction_id: s
         raise HTTPException(status_code=404, detail="no packages (project not finalized?)")
     brief = view.brief.brief if view.brief is not None else ""
     return packages, brief
+
+
+@router.get("/projects/{project_id}/ideation-packet.md")
+async def ideation_packet(project_id: str, request: Request) -> Response:
+    """Download the brainstorm packet for external ideation (manual mode)."""
+    view = await request.app.state.run_manager.get_view(project_id)
+    if view is None:
+        raise HTTPException(status_code=404, detail="unknown project")
+    if not view.territories:
+        raise HTTPException(
+            status_code=409,
+            detail="no territories yet — the packet becomes available once the run reaches ideation",
+        )
+    return Response(
+        content=render_ideation_packet(view),
+        media_type="text/markdown",
+        headers={"Content-Disposition": 'attachment; filename="ideation-packet.md"'},
+    )
 
 
 @router.get("/projects/{project_id}/export.md")

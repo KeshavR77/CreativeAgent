@@ -5,6 +5,9 @@ rationale tying each back to the audience and the competitive gap.
 Brief:
 {{brief}}
 
+Client's clarifying answers (if any):
+{{clarifying_answers}}
+
 Research summary:
 {{research}}
 

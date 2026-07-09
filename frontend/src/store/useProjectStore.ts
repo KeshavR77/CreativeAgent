@@ -10,7 +10,6 @@ import { create } from 'zustand';
 import type {
   ProjectView,
   Direction,
-  DirectionChange,
   DivergenceReport,
   CostRecord,
   HealthSnapshot,
@@ -20,8 +19,8 @@ import type {
   InterruptPayload,
 } from '../api/types';
 
-/** A direction as held in the store: the model plus a transient last-change tag. */
-export type StoredDirection = Direction & { lastChange?: DirectionChange | string };
+/** A direction as held in the store (alias kept for call-site readability). */
+export type StoredDirection = Direction;
 
 /** A freshly-announced (direction_created) skeleton before the full view refetch. */
 function skeletonDirection(id: string, brain: Brain | string): StoredDirection {
@@ -146,15 +145,8 @@ export const useProjectStore = create<ProjectState>((set) => ({
           break;
         }
         case 'direction_updated': {
-          if (view && typeof data.direction_id === 'string') {
-            const directions: StoredDirection[] = view.directions.map(
-              (d: StoredDirection) =>
-                d.id === data.direction_id
-                  ? { ...d, lastChange: (data.change as string) ?? d.lastChange }
-                  : d
-            );
-            patch.view = { ...view, directions };
-          }
+          // The event is a signal only — the debounced refetch in useProjectSync
+          // re-syncs the full direction from the backend (source of truth).
           break;
         }
         case 'divergence_computed': {
@@ -243,6 +235,7 @@ export const useProjectStore = create<ProjectState>((set) => ({
 // --------------------------------------------------------------------------- //
 const COCKPIT_STATES: ReadonlySet<RunState> = new Set<RunState>([
   'awaiting_strategy_approval',
+  'awaiting_ideation',
   'awaiting_curation',
 ]);
 

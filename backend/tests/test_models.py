@@ -398,12 +398,14 @@ def test_node_and_gate_run_state_maps() -> None:
     for node in ("interrogate", "research", "strategize", "verbal", "briefwrite", "seed"):
         assert isinstance(NODE_RUN_STATE[node], RunState)
     assert GATE_RUN_STATE["strategy_gate"] == RunState.awaiting_strategy_approval
+    assert GATE_RUN_STATE["ideation_gate"] == RunState.awaiting_ideation
     assert GATE_RUN_STATE["curation_gate"] == RunState.awaiting_curation
 
 
 def test_non_resumable_states_exact_set() -> None:
     assert set(NON_RESUMABLE_STATES) == {
         RunState.awaiting_strategy_approval,
+        RunState.awaiting_ideation,
         RunState.awaiting_curation,
         RunState.done,
         RunState.cancelled,

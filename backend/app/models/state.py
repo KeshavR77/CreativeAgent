@@ -17,6 +17,7 @@ from app.models.artifacts import (
     CostRecord,
     CreativeBrief,
     Direction,
+    IdeaReview,
     ResearchDossier,
     Strategy,
     Territory,
@@ -61,6 +62,14 @@ class GraphState(TypedDict, total=False):
 
     project_id: str
     brief: Brief
+    # How ideas are produced: "internal" (the reasoning model ideates, single
+    # shot), "manual" (pause at the ideation gate; the operator brainstorms with
+    # an external tool and pastes ideas back), or "conceptial" (automatic
+    # brainstorm⇄critique rounds, Conceptial when configured).
+    ideation_mode: str
+    # Externally-submitted / loop-produced ideas with their in-house critiques
+    # (manual mode). Replaced wholesale on each gate submit.
+    ideation_reviews: list[IdeaReview]
     clarifying_answers: list[str]
     research: ResearchDossier
     strategy: Strategy

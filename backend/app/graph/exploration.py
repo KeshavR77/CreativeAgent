@@ -15,6 +15,7 @@ import hashlib
 import time
 
 from langgraph.config import get_stream_writer
+from langgraph.types import Send
 from pydantic import BaseModel, Field
 
 from app.config import get_settings
@@ -119,6 +120,36 @@ def ideate_one(project_id: str, territory: Territory, *, lens_tweak: str | None 
     return big_idea, brain
 
 
+# Total brainstorm rounds in the automatic loop (conceptial mode): the first
+# idea plus up to (ROUNDS - 1) critique-informed regenerations.
+_IDEATION_ROUNDS = 2
+
+
+def ideate_iterative(project_id: str, territory: Territory) -> tuple[str, str]:
+    """Automatic brainstorm⇄critique loop (conceptial mode).
+
+    The brainstormer (Conceptial when configured, else the hot LLM ideator)
+    proposes; the independent critic judges; a weak idea (< IDEA_SCORE_BAR) is
+    regenerated with the critique folded into the lens. The critic and the
+    brainstormer switch back and forth without any manual export/import."""
+    from app.services.ideation import IDEA_SCORE_BAR, critique_idea
+
+    big_idea, brain = ideate_one(project_id, territory)
+    for _ in range(_IDEATION_ROUNDS - 1):
+        review = critique_idea(project_id, territory.label, big_idea)
+        if review.score >= IDEA_SCORE_BAR:
+            break
+        big_idea, brain = ideate_one(
+            project_id,
+            territory,
+            lens_tweak=(
+                "a previous idea was critiqued: "
+                f"{review.case_against} — produce a sharper idea that answers the critique"
+            ),
+        )
+    return big_idea, brain
+
+
 def build_spec(project_id: str, territory: Territory, big_idea: str) -> tuple[ArtDirectionSpec, CopyDeck]:
     """Produce the ArtDirectionSpec (moodboard stubbed empty) + CopyDeck."""
     model = get_chat_model("spec", project_id=project_id, temperature=0.7, seed_extra=territory.label)
@@ -191,6 +222,35 @@ def _is_transient(exc: Exception) -> bool:
 _EXPLORE_ATTEMPTS = 3
 
 
+def route_to_territories(state: GraphState) -> list[Send]:
+    """Fan out one ``explore_territory`` branch per territory, capped at K.
+
+    A Send branch does NOT see accumulated state, so all context travels in the
+    payload: the ideation mode, and (manual mode) the best externally-submitted
+    idea for each territory — the highest critic score wins when the operator
+    submitted several per territory. ``index`` disambiguates the direction id so
+    duplicate territory labels can't collapse into one direction."""
+    from app.services.ideation import best_idea_per_territory
+
+    project_id = state["project_id"]
+    mode = state.get("ideation_mode") or "internal"
+    ideas = best_idea_per_territory(state.get("ideation_reviews") or [])
+    k = max(2, get_settings().K)
+    return [
+        Send(
+            "explore_territory",
+            {
+                "project_id": project_id,
+                "territory": territory.model_dump(),
+                "index": i,
+                "ideation_mode": mode,
+                "external_idea": ideas.get(territory.label),
+            },
+        )
+        for i, territory in enumerate(state.get("territories", [])[:k])
+    ]
+
+
 def explore_territory(state: GraphState) -> dict:
     """One fan-out branch: idea -> spec -> critic -> visuals. Receives its territory
     via the Send payload (a Send branch does NOT see accumulated state). Transient
@@ -202,11 +262,20 @@ def explore_territory(state: GraphState) -> dict:
     territory = Territory.model_validate(state["territory"])
     label = territory.label
     index = int(state.get("index", 0) or 0)
+    mode = state.get("ideation_mode") or "internal"
+    external_idea = state.get("external_idea") or None
     writer({"type": EventType.agent_started.value, "agent": "explore", "territory": label})
     for attempt in range(_EXPLORE_ATTEMPTS):
         reset_usage()  # per-attempt, so a retry doesn't double-count tokens
         try:
-            big_idea, brain = ideate_one(project_id, territory)
+            if external_idea:
+                # Manual mode: the idea was brainstormed externally, critiqued at
+                # the ideation gate, and chosen. Recorded truthfully as external.
+                big_idea, brain = external_idea, "external"
+            elif mode == "conceptial":
+                big_idea, brain = ideate_iterative(project_id, territory)
+            else:
+                big_idea, brain = ideate_one(project_id, territory)
             art, copy = build_spec(project_id, territory, big_idea)
             direction = Direction(
                 id=direction_id(project_id, f"{index}:{label}"),

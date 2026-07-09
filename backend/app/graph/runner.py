@@ -33,6 +33,7 @@ from app.storage.repo import EventBus, EventRepo, RegistryRepo
 # gate name (as it appears in an interrupt payload) -> awaiting_* state.
 _GATE_STATE: dict[str, RunState] = {
     "strategy": RunState.awaiting_strategy_approval,
+    "ideation": RunState.awaiting_ideation,
     "curation": RunState.awaiting_curation,
 }
 
@@ -79,12 +80,15 @@ class RunManager:
             {"project_id": project_id, "brief_excerpt": excerpt},
         )
 
-    async def start(self, project_id: str, brief: Brief) -> asyncio.Task:
+    async def start(
+        self, project_id: str, brief: Brief, ideation_mode: str = "internal"
+    ) -> asyncio.Task:
         # Register only if we have not already (POST /projects may pre-create).
         if self.registry.get(project_id) is None:
             self.create(project_id, brief)
         return self._spawn(
-            project_id, {"project_id": project_id, "brief": brief}
+            project_id,
+            {"project_id": project_id, "brief": brief, "ideation_mode": ideation_mode},
         )
 
     async def resume(self, project_id: str, decision: dict) -> asyncio.Task:
@@ -227,6 +231,8 @@ class RunManager:
         return ProjectView(
             **summary.model_dump(),
             brief=values.get("brief"),
+            ideation_mode=values.get("ideation_mode") or "internal",
+            research=values.get("research"),
             strategy=values.get("strategy"),
             verbal_identity=values.get("verbal_identity"),
             creative_brief=values.get("creative_brief"),

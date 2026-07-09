@@ -260,6 +260,29 @@ class CritiqueScore(BaseModel):
         return v
 
 
+class IdeaReview(BaseModel):
+    """One big idea for a territory, optionally with the in-house critique of it.
+
+    Used by the ideation gate (manual mode): externally-brainstormed ideas are
+    parsed into these, critiqued by the independent critic, and surfaced back so
+    the operator can iterate with their external tool. Also the shape returned by
+    the automatic brainstorm⇄critique loop (conceptial mode). ``score`` is the
+    critic's 1–5 judgement; 0.0 means "not yet critiqued"."""
+
+    territory_label: str
+    big_idea: str = Field(min_length=1)
+    case_for: str = ""
+    case_against: str = ""
+    score: float = 0.0
+
+    @field_validator("score")
+    @classmethod
+    def _score_range(cls, v: float) -> float:
+        if not (0.0 <= v <= 5.0):
+            raise ValueError("idea score is on a 0–5 scale (0 = uncritiqued)")
+        return v
+
+
 # --------------------------------------------------------------------------- #
 # direction / package / cost                                                   #
 # --------------------------------------------------------------------------- #

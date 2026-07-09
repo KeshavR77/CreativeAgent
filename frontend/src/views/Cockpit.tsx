@@ -19,7 +19,7 @@ import { RunStateChip } from '../components/RunStateChip';
 import { DirectionCard } from '../components/DirectionCard';
 import { MergeModal } from '../components/MergeModal';
 import { Shell } from '../components/Shell';
-import type { ProjectView, Strategy } from '../api/types';
+import type { IdeaReview, ProjectView, Strategy, Territory } from '../api/types';
 
 function StrategyGatePanel({
   projectId,
@@ -124,6 +124,117 @@ function StrategyGatePanel({
   );
 }
 
+function IdeationGatePanel({
+  projectId,
+  territories,
+  reviews,
+  busy,
+  onSubmit,
+  onProceed,
+}: {
+  projectId: string;
+  territories: Territory[];
+  reviews: IdeaReview[];
+  busy: boolean;
+  onSubmit: (ideasText: string) => void;
+  onProceed: () => void;
+}) {
+  const [ideasText, setIdeasText] = useState('');
+
+  return (
+    <section
+      data-testid="ideation-gate-panel"
+      className="panel flex flex-col gap-6 border-l-2 border-l-warn p-8"
+    >
+      <header>
+        <p className="kicker mb-1">Ideation — human decision</p>
+        <h2 className="font-serif text-2xl text-ink">Brainstorm with your studio of choice</h2>
+        <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-muted">
+          Download the ideation packet and take it to any external creative model or
+          agent. Paste its output back here — each idea gets an independent critique
+          so you can iterate — then proceed to build on the ideas you keep.
+          Proceeding with nothing submitted lets the in-house model ideate instead.
+        </p>
+      </header>
+
+      <div className="flex flex-wrap items-baseline gap-3">
+        <a href={api.ideationPacketUrl(projectId)} download className="btn-ink">
+          Download ideation packet
+        </a>
+        <span className="font-mono text-[10px] uppercase tracking-kicker text-muted">
+          {territories.length} territories
+        </span>
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label className="kicker" htmlFor="ideas-paste">
+          Paste the brainstorm output
+        </label>
+        <textarea
+          id="ideas-paste"
+          aria-label="External ideas"
+          value={ideasText}
+          onChange={(e) => setIdeasText(e.target.value)}
+          rows={7}
+          placeholder={`### ${territories[0]?.label ?? 'Territory'}\nThe big idea…`}
+          className="field font-mono text-[12px]"
+        />
+        <button
+          type="button"
+          disabled={busy || !ideasText.trim()}
+          onClick={() => onSubmit(ideasText)}
+          className="btn-ghost self-start"
+        >
+          Submit for critique
+        </button>
+      </div>
+
+      {reviews.length > 0 ? (
+        <div className="flex flex-col gap-4 border-t border-line pt-5" data-testid="idea-reviews">
+          <p className="kicker">In-house critique — iterate or proceed</p>
+          {reviews.map((r, i) => (
+            <div key={`${r.territory_label}-${i}`} className="flex flex-col gap-1.5 border-l-2 border-line pl-4">
+              <div className="flex flex-wrap items-baseline gap-3">
+                <span className="font-serif text-[15px] text-ink">{r.territory_label}</span>
+                <span
+                  className={`font-mono text-[10px] uppercase tracking-kicker ${
+                    r.score >= 4 ? 'text-ok' : r.score >= 3 ? 'text-warn' : 'text-accent'
+                  }`}
+                >
+                  score {r.score.toFixed(1)}
+                </span>
+              </div>
+              <p className="text-[14px] leading-relaxed text-ink">{r.big_idea}</p>
+              {r.case_for ? (
+                <p className="text-[12px] leading-relaxed text-muted">
+                  <span className="text-ok">for</span> — {r.case_for}
+                </p>
+              ) : null}
+              {r.case_against ? (
+                <p className="text-[12px] leading-relaxed text-muted">
+                  <span className="text-accent">against</span> — {r.case_against}
+                </p>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="flex items-center gap-3 border-t border-line pt-5">
+        <button type="button" disabled={busy} onClick={onProceed} className="btn-ink">
+          Proceed to exploration
+        </button>
+        <span className="text-[12px] text-muted">
+          {reviews.length
+            ? 'builds on the submitted ideas (best score per territory wins)'
+            : 'nothing submitted — the in-house model will ideate'}
+        </span>
+      </div>
+    </section>
+  );
+}
+
+
 function ProcessRecord({ view }: { view: ProjectView }) {
   const rows: { label: string; body: React.ReactNode }[] = [];
   if (view.brief) {
@@ -142,9 +253,24 @@ function ProcessRecord({ view }: { view: ProjectView }) {
       ),
     });
   }
+  if (view.research?.summary) {
+    rows.push({
+      label: '02 Research',
+      body: (
+        <>
+          <p className="text-[14px] leading-relaxed text-ink">{view.research.summary}</p>
+          {view.research.competitors?.length ? (
+            <p className="mt-1 font-mono text-[10px] text-muted">
+              competitors — {view.research.competitors.map((c) => c.name).join(' · ')}
+            </p>
+          ) : null}
+        </>
+      ),
+    });
+  }
   if (view.strategy) {
     rows.push({
-      label: '02 Strategy',
+      label: '03 Strategy',
       body: (
         <>
           <p className="font-serif text-[15px] leading-snug text-ink">{view.strategy.positioning}</p>
@@ -158,7 +284,7 @@ function ProcessRecord({ view }: { view: ProjectView }) {
   }
   if (view.verbal_identity) {
     rows.push({
-      label: '03 Verbal identity',
+      label: '04 Verbal identity',
       body: (
         <>
           <p className="text-[14px] text-ink">
@@ -183,7 +309,7 @@ function ProcessRecord({ view }: { view: ProjectView }) {
   }
   if (view.creative_brief) {
     rows.push({
-      label: '04 Creative brief',
+      label: '05 Creative brief',
       body: (
         <>
           <p className="text-[14px] leading-relaxed text-ink">{view.creative_brief.objective}</p>
@@ -199,7 +325,7 @@ function ProcessRecord({ view }: { view: ProjectView }) {
   }
   if (view.territories?.length) {
     rows.push({
-      label: '05 Territories',
+      label: '06 Territories',
       body: (
         <div className="flex flex-col gap-1.5">
           {view.territories.map((t, ti) => (
@@ -288,7 +414,26 @@ export default function Cockpit() {
           </p>
         ) : null}
 
-        {view && state === 'awaiting_curation' ? <ProcessRecord view={view} /> : null}
+        {view && (state === 'awaiting_curation' || state === 'awaiting_ideation') ? (
+          <ProcessRecord view={view} />
+        ) : null}
+
+        {view && state === 'awaiting_ideation' ? (
+          <IdeationGatePanel
+            projectId={id}
+            territories={view.territories ?? []}
+            reviews={((view.interrupt?.reviews as IdeaReview[] | undefined) ?? []) as IdeaReview[]}
+            busy={busy}
+            onSubmit={(ideasText) =>
+              run(() => api.resolveIdeationGate(id, { action: 'submit', ideas_text: ideasText })).then(
+                apply
+              )
+            }
+            onProceed={() =>
+              run(() => api.resolveIdeationGate(id, { action: 'proceed' })).then(apply)
+            }
+          />
+        ) : null}
 
         {state === 'awaiting_strategy_approval' ? (
           <StrategyGatePanel
@@ -338,6 +483,7 @@ export default function Cockpit() {
                 <DirectionCard
                   key={d.id}
                   direction={d}
+                  names={view?.verbal_identity?.names}
                   busy={busy}
                   mergeSelected={selectedForMerge.has(d.id)}
                   onToggleMerge={toggleMerge}
@@ -382,7 +528,9 @@ export default function Cockpit() {
           </>
         ) : null}
 
-        {state !== 'awaiting_strategy_approval' && state !== 'awaiting_curation' ? (
+        {state !== 'awaiting_strategy_approval' &&
+        state !== 'awaiting_ideation' &&
+        state !== 'awaiting_curation' ? (
           <p className="flex items-center gap-2 text-sm text-muted">
             This project is not currently awaiting a decision. Current state:{' '}
             <RunStateChip state={state} />

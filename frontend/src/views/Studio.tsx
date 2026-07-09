@@ -26,6 +26,7 @@ const PIPELINE: { key: RunState; label: string }[] = [
   { key: 'naming', label: 'Naming' },
   { key: 'briefing', label: 'Brief' },
   { key: 'seeding', label: 'Seed' },
+  { key: 'awaiting_ideation', label: 'Ideation' },
   { key: 'exploring', label: 'Explore' },
   { key: 'diverging', label: 'Diverge' },
   { key: 'awaiting_curation', label: 'Gate 2' },

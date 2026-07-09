@@ -1,11 +1,15 @@
-"""Graph assembly (§9/§10, sub-plans 03–04).
+"""Graph assembly (§9/§10, sub-plans 03–04 + ideation modes).
 
 Wires the full backend graph over ``GraphState``:
 
     START -> interrogate -> research -> strategize -> strategy_gate
              strategy_gate --(approve)--> verbal -> briefwrite -> seed
              strategy_gate --(reject)---> strategize      (re-runs, re-interrupts)
-    seed --(Send per territory)--> explore_territory -> divergence -> curation_gate
+    seed -> ideation_gate
+             ideation_gate --(internal/conceptial)--> Send per territory (no pause)
+             ideation_gate --(manual: submit)------> ideation_gate (critique loop)
+             ideation_gate --(manual: proceed)-----> Send per territory
+    explore_territory -> divergence -> curation_gate
              curation_gate --(promote/kill/annotate/edit/...)--> curation_gate (loop)
              curation_gate --(finalize)--> refine -> package -> END   (or package directly)
 
@@ -18,12 +22,11 @@ Must be compiled WITH a checkpointer and invoked with a ``thread_id``.
 from __future__ import annotations
 
 from langgraph.graph import END, START, StateGraph
-from langgraph.types import RetryPolicy, Send
+from langgraph.types import RetryPolicy
 
-from app.config import get_settings
 from app.graph.curation import curation_gate
 from app.graph.exploration import divergence_node, explore_territory, package, refine
-from app.graph.gates import strategy_gate
+from app.graph.gates import ideation_gate, strategy_gate
 from app.graph.nodes import (
     briefwrite,
     interrogate,
@@ -43,25 +46,6 @@ def _transient(exc: Exception) -> bool:
     return isinstance(exc, (ConnectionError, TimeoutError))
 
 
-def _route_to_territories(state: GraphState) -> list[Send]:
-    """Fan out one ``explore_territory`` branch per territory, capped at K. A real
-    model may overshoot the requested territory count; without the cap each extra
-    territory costs a full explore branch (chat + sketches + moodboard). A Send
-    branch does NOT see accumulated state, so all context travels in the payload."""
-    project_id = state["project_id"]
-    k = max(2, get_settings().K)
-    # `index` disambiguates the direction id so two territories with the same label
-    # can't collapse into one direction (last-write-wins on a colliding id). The
-    # branch reads only project_id/territory/index — other context isn't needed.
-    return [
-        Send(
-            "explore_territory",
-            {"project_id": project_id, "territory": territory.model_dump(), "index": i},
-        )
-        for i, territory in enumerate(state.get("territories", [])[:k])
-    ]
-
-
 def build_graph(checkpointer):
     """Compile the full backend graph against ``checkpointer`` (durable interrupts)."""
     retry = RetryPolicy(max_attempts=3, retry_on=_transient)
@@ -75,7 +59,10 @@ def build_graph(checkpointer):
     g.add_node("verbal", verbal, retry_policy=retry)
     g.add_node("briefwrite", briefwrite, retry_policy=retry)
     g.add_node("seed", seed, retry_policy=retry)
-    # --- fan-out + gate 2 (sub-plan 04) ---
+    # --- ideation gate + fan-out + gate 2 ---
+    # ideation_gate routes dynamically: straight to the Send fan-out (internal /
+    # conceptial), or interrupt-and-loop for externally-brainstormed ideas (manual).
+    g.add_node("ideation_gate", ideation_gate)
     # explore_territory self-handles branch failure AND retries transient GLM
     # errors internally; the node-level retry is a second belt for transport blips.
     g.add_node("explore_territory", explore_territory, retry_policy=retry)
@@ -91,7 +78,8 @@ def build_graph(checkpointer):
     # strategy_gate routes dynamically via Command(goto=...).
     g.add_edge("verbal", "briefwrite")
     g.add_edge("briefwrite", "seed")
-    g.add_conditional_edges("seed", _route_to_territories, ["explore_territory"])
+    g.add_edge("seed", "ideation_gate")
+    # ideation_gate routes dynamically (Sends to explore_territory, or self-loop).
     g.add_edge("explore_territory", "divergence")
     g.add_edge("divergence", "curation_gate")
     # curation_gate routes dynamically (self-loop for ops, refine/package on finalize).

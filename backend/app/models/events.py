@@ -23,6 +23,7 @@ class RunState(str, Enum):
     naming = "naming"          # verbal node
     briefing = "briefing"      # briefwrite node
     seeding = "seeding"        # seed node
+    awaiting_ideation = "awaiting_ideation"  # ideation gate (manual mode only)
     exploring = "exploring"    # fan-out branches
     diverging = "diverging"    # divergence fan-in
     awaiting_curation = "awaiting_curation"  # gate 2
@@ -50,6 +51,7 @@ NODE_RUN_STATE: dict[str, RunState] = {
 # gate node -> the awaiting_* state entered when it interrupts.
 GATE_RUN_STATE: dict[str, RunState] = {
     "strategy_gate": RunState.awaiting_strategy_approval,
+    "ideation_gate": RunState.awaiting_ideation,
     "curation_gate": RunState.awaiting_curation,
 }
 
@@ -58,6 +60,7 @@ GATE_RUN_STATE: dict[str, RunState] = {
 NON_RESUMABLE_STATES: frozenset[RunState] = frozenset(
     {
         RunState.awaiting_strategy_approval,
+        RunState.awaiting_ideation,
         RunState.awaiting_curation,
         RunState.done,
         RunState.cancelled,

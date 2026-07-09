@@ -139,6 +139,7 @@ def strategize(state: GraphState) -> dict:
     prompt = render_prompt(
         "strategize",
         brief=brief.brief,
+        clarifying_answers="; ".join(state.get("clarifying_answers") or []),
         research=(dossier.summary if dossier else ""),
         rejection_notes=state.get("rejection_notes", ""),
     )

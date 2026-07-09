@@ -221,6 +221,9 @@ export interface EventOut {
 // backend/app/models/views.py :: ProjectView (extends ProjectSummary)
 export interface ProjectView extends ProjectSummary {
   brief: Brief | null;
+  // Always sent by the backend; optional here so partial test fixtures compile.
+  ideation_mode?: IdeationMode;
+  research?: ResearchDossier | null;
   strategy: Strategy | null;
   verbal_identity: VerbalIdentity | null;
   creative_brief: CreativeBrief | null;
@@ -229,6 +232,27 @@ export interface ProjectView extends ProjectSummary {
   divergence: DivergenceReport | null;
   packages: ConceptPackage[];
   interrupt: InterruptPayload | null;
+}
+
+// backend/app/api/routes_projects.py :: IDEATION_MODES
+export type IdeationMode = 'internal' | 'manual' | 'conceptial';
+
+// backend/app/models/artifacts.py :: ResearchDossier (summary view; item shapes
+// kept loose — the UI only reads `summary` and counts).
+export interface ResearchDossier {
+  sources: Array<{ title: string; url: string; snippet?: string }>;
+  competitors: Array<{ name: string; note: string }>;
+  audience_notes: Array<Record<string, unknown>>;
+  summary: string;
+}
+
+// backend/app/models/artifacts.py :: IdeaReview (ideation gate reviews)
+export interface IdeaReview {
+  territory_label: string;
+  big_idea: string;
+  case_for: string;
+  case_against: string;
+  score: number; // 0 = not yet critiqued
 }
 
 // divergence report (backend/app/services/divergence.py -> {min, mean, warning})
@@ -278,6 +302,7 @@ export type RunState =
   | 'naming'
   | 'briefing'
   | 'seeding'
+  | 'awaiting_ideation'
   | 'exploring'
   | 'diverging'
   | 'awaiting_curation'
@@ -386,6 +411,12 @@ export interface CreateProjectBody {
   brand_name?: string;
   constraints?: string[];
   audience?: string;
+  ideation_mode?: IdeationMode;
+}
+
+export interface GateIdeationBody {
+  action: 'submit' | 'proceed';
+  ideas_text?: string;
 }
 
 export interface GateStrategyBody {

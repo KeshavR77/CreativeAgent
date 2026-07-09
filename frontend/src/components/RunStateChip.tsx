@@ -16,7 +16,7 @@ const LIVE = new Set([
 ]);
 
 // States waiting on a human decision.
-const GATED = new Set(['awaiting_strategy_approval', 'awaiting_curation']);
+const GATED = new Set(['awaiting_strategy_approval', 'awaiting_ideation', 'awaiting_curation']);
 
 function toneFor(state: string): { dot: string; text: string } {
   if (GATED.has(state)) return { dot: 'bg-warn', text: 'text-warn' };

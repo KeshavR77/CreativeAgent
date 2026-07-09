@@ -17,6 +17,7 @@ from app.models.artifacts import (
     ConceptPackage,
     CreativeBrief,
     Direction,
+    ResearchDossier,
     Strategy,
     Territory,
     VerbalIdentity,
@@ -51,6 +52,8 @@ class ProjectView(ProjectSummary):
     """
 
     brief: Optional[Brief] = None
+    ideation_mode: str = "internal"
+    research: Optional[ResearchDossier] = None
     strategy: Optional[Strategy] = None
     verbal_identity: Optional[VerbalIdentity] = None
     creative_brief: Optional[CreativeBrief] = None

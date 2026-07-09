@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from uuid import uuid4
 
-from fastapi import APIRouter, File, HTTPException, Request, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
 from pydantic import BaseModel, Field, ValidationError
 
 from app.models.artifacts import Brief, Strategy
@@ -27,17 +27,37 @@ _MAX_PDF_BYTES = 15 * 1024 * 1024
 router = APIRouter(prefix="/api")
 
 
+# How ideas get produced for the explore fan-out (see graph/gates.ideation_gate).
+IDEATION_MODES = ("internal", "manual", "conceptial")
+
+
 class CreateProjectBody(BaseModel):
     brief: str = Field(min_length=1)
     brand_name: str = ""
     constraints: list[str] = Field(default_factory=list)
     audience: str = ""
+    ideation_mode: str = "internal"
 
 
 class GateBody(BaseModel):
     action: str  # "approve" | "reject"
     edits: dict = Field(default_factory=dict)
     notes: str = ""
+
+
+class IdeationGateBody(BaseModel):
+    action: str  # "submit" | "proceed"
+    ideas_text: str = ""
+
+
+def _validated_mode(mode: str) -> str:
+    value = (mode or "internal").strip().lower()
+    if value not in IDEATION_MODES:
+        raise HTTPException(
+            status_code=422,
+            detail=f"ideation_mode must be one of {', '.join(IDEATION_MODES)}",
+        )
+    return value
 
 
 def _run_manager(request: Request):
@@ -59,31 +79,42 @@ def _brief_for(request: Request, project_id: str) -> Brief:
     return briefs[project_id]
 
 
-def _register_project(request: Request, brief: Brief) -> str:
-    """Register a new project from a Brief and return its id."""
+def _pending_modes(request: Request) -> dict:
+    return request.app.state.pending_modes
+
+
+def _register_project(request: Request, brief: Brief, ideation_mode: str = "internal") -> str:
+    """Register a new project from a Brief (+ chosen ideation mode); return its id."""
     project_id = uuid4().hex
     _pending_briefs(request)[project_id] = brief
+    _pending_modes(request)[project_id] = ideation_mode
     _run_manager(request).create(project_id, brief)
     return project_id
 
 
 @router.post("/projects", status_code=201)
 async def create_project(body: CreateProjectBody, request: Request) -> dict:
+    mode = _validated_mode(body.ideation_mode)
     brief = Brief(
         brief=body.brief,
         brand_name=body.brand_name,
         constraints=list(body.constraints),
         audience=body.audience,
     )
-    project_id = _register_project(request, brief)
-    return {"id": project_id, "state": RunState.intake.value}
+    project_id = _register_project(request, brief, mode)
+    return {"id": project_id, "state": RunState.intake.value, "ideation_mode": mode}
 
 
 @router.post("/projects/from-pdf", status_code=201)
-async def create_project_from_pdf(request: Request, file: UploadFile = File(...)) -> dict:
+async def create_project_from_pdf(
+    request: Request,
+    file: UploadFile = File(...),
+    ideation_mode: str = Form("internal"),
+) -> dict:
     """The normal entry point: upload a client RFP PDF; the reasoning model reads
     it and distills a Brief, which seeds a new project. Returns the distilled brief
     so the UI can show what was understood before the run starts."""
+    mode = _validated_mode(ideation_mode)
     if file.content_type not in (None, "application/pdf", "application/octet-stream") and not (
         file.filename or ""
     ).lower().endswith(".pdf"):
@@ -97,10 +128,11 @@ async def create_project_from_pdf(request: Request, file: UploadFile = File(...)
         brief = brief_from_pdf_bytes(data)
     except PdfIntakeError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
-    project_id = _register_project(request, brief)
+    project_id = _register_project(request, brief, mode)
     return {
         "id": project_id,
         "state": RunState.intake.value,
+        "ideation_mode": mode,
         "brief": brief.model_dump(),
     }
 
@@ -121,7 +153,8 @@ async def get_project(project_id: str, request: Request) -> ProjectView:
 @router.post("/projects/{project_id}/start", status_code=202)
 async def start_project(project_id: str, request: Request) -> dict:
     brief = _brief_for(request, project_id)
-    task = await _run_manager(request).start(project_id, brief)
+    mode = _pending_modes(request).get(project_id, "internal")
+    task = await _run_manager(request).start(project_id, brief, ideation_mode=mode)
     await task
     return {"status": "started"}
 
@@ -175,6 +208,31 @@ async def resolve_strategy_gate(
                     status_code=422,
                     detail=f"invalid strategy edits: {exc.error_count()} error(s)",
                 ) from exc
+    task = await _run_manager(request).resume(project_id, body.model_dump())
+    await task
+    return await get_project(project_id, request)
+
+
+@router.post("/projects/{project_id}/gates/ideation")
+async def resolve_ideation_gate(
+    project_id: str, body: IdeationGateBody, request: Request
+) -> ProjectView:
+    """Resolve the ideation gate (manual mode): ``submit`` pastes external-tool
+    output — parsed into per-territory ideas, each critiqued in-house, and the
+    gate re-interrupts with the reviews so the operator can iterate — and
+    ``proceed`` continues into the explore fan-out with the submitted ideas."""
+    summary = _registry(request).get(project_id)
+    if summary is None:
+        raise HTTPException(status_code=404, detail="unknown project")
+    if summary.state != RunState.awaiting_ideation.value:
+        raise HTTPException(
+            status_code=409,
+            detail=f"project {project_id} is not awaiting ideation",
+        )
+    if body.action not in ("submit", "proceed"):
+        raise HTTPException(status_code=422, detail="action must be submit or proceed")
+    if body.action == "submit" and not body.ideas_text.strip():
+        raise HTTPException(status_code=422, detail="ideas_text is empty")
     task = await _run_manager(request).resume(project_id, body.model_dump())
     await task
     return await get_project(project_id, request)
