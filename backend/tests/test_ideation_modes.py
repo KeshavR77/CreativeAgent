@@ -174,46 +174,122 @@ def test_manual_proceed_without_ideas_falls_back_to_internal_ideation(client) ->
 
 
 # --------------------------------------------------------------------------- #
-# mode: conceptial — automatic brainstorm⇄critique loop                        #
+# mode: conceptial — brainstorm (spark) ⇄ develop ⇄ critique loop               #
 # --------------------------------------------------------------------------- #
-def test_conceptial_mode_loops_brainstorm_and_critique(client, monkeypatch) -> None:
-    # The mock idea critique scores 3.2 (< bar), so the loop regenerates once per
-    # territory: ideator calls == 2 × territories.
-    from app.graph import exploration
-
-    calls = {"n": 0}
-    real_ideate = exploration.ideate_one
-
-    def counting_ideate(project_id, territory, *, lens_tweak=None):
-        calls["n"] += 1
-        return real_ideate(project_id, territory, lens_tweak=lens_tweak)
-
-    monkeypatch.setattr(exploration, "ideate_one", counting_ideate)
-
+def test_conceptial_mode_end_to_end_keyless(client) -> None:
+    # Keyless: Conceptial is mock, so ideate_one returns a mock seed (brain="mock")
+    # and ideate_iterative uses it as-is (no develop). The run still reaches
+    # curation with critiqued directions — the mode wires up end to end.
     pid = _to_gate1(client, "conceptial")
     view = _approve_strategy(client, pid)
     assert view["state"] == "awaiting_curation"
-    n_dirs = len(view["directions"])
-    assert n_dirs >= 2
-    assert calls["n"] == 2 * n_dirs, "each territory brainstormed, critiqued, regenerated once"
+    assert len(view["directions"]) >= 2
+    assert all(d["critique"] for d in view["directions"])
 
 
-def test_ideate_iterative_stops_early_on_strong_idea(clean_env, monkeypatch) -> None:
+def test_conceptial_seed_is_developed_then_critique_loops(clean_env, monkeypatch) -> None:
+    # With a REAL Conceptial spark (brain="conceptial"), the seed is developed by
+    # the reasoning model, critiqued, and resparked+redeveloped once when weak.
+    from app.graph import exploration
+    from app.services import ideation
+
+    sparks = {"n": 0}
+    develops = {"n": 0}
+
+    def fake_spark(pid, t, *, lens_tweak=None, brief_context=""):
+        sparks["n"] += 1
+        return f"raw spark {sparks['n']}", "conceptial"
+
+    def fake_develop(pid, t, seed, ctx):
+        develops["n"] += 1
+        return f"developed({seed})"
+
+    monkeypatch.setattr(exploration, "ideate_one", fake_spark)
+    monkeypatch.setattr(exploration, "_develop_seed", fake_develop)
+    # First critique weak (< bar) -> loop; the loop's post-develop idea isn't re-critiqued.
+    monkeypatch.setattr(
+        ideation, "critique_idea", lambda pid, label, idea, strategy=None: ideation.IdeaCritiqueResult(score=2.5)
+    )
+    idea, brain = exploration.ideate_iterative("p", Territory(label="T", lens="l"), brief_context="ctx")
+    assert brain == "conceptial+glm"
+    assert sparks["n"] == 2 and develops["n"] == 2  # spark→develop, critique weak, respark→redevelop
+    assert idea == "developed(raw spark 2)"
+
+
+def test_conceptial_develop_stops_early_on_strong_idea(clean_env, monkeypatch) -> None:
     from app.graph import exploration
     from app.services import ideation
 
     monkeypatch.setattr(
-        exploration, "ideate_one", lambda pid, t, *, lens_tweak=None: ("great idea", "mock")
+        exploration, "ideate_one", lambda pid, t, *, lens_tweak=None, brief_context="": ("spark", "conceptial")
     )
+    monkeypatch.setattr(exploration, "_develop_seed", lambda pid, t, seed, ctx: "a strong developed idea")
     monkeypatch.setattr(
-        ideation,
-        "critique_idea",
-        lambda pid, label, idea, strategy=None: ideation.IdeaCritiqueResult(score=4.8),
+        ideation, "critique_idea", lambda pid, label, idea, strategy=None: ideation.IdeaCritiqueResult(score=4.8)
     )
     idea, brain = exploration.ideate_iterative("p", Territory(label="T", lens="l"))
-    assert idea == "great idea" and brain == "mock"
+    assert idea == "a strong developed idea" and brain == "conceptial+glm"
+
+
+def test_ideate_iterative_uses_llm_idea_as_is_when_conceptial_absent(clean_env, monkeypatch) -> None:
+    # No real Conceptial (brain != "conceptial") -> ideate_one's grounded LLM idea
+    # is used directly, no develop step.
+    from app.graph import exploration
+
+    monkeypatch.setattr(
+        exploration, "ideate_one", lambda pid, t, *, lens_tweak=None, brief_context="": ("glm idea", "glm")
+    )
+    idea, brain = exploration.ideate_iterative("p", Territory(label="T", lens="l"))
+    assert idea == "glm idea" and brain == "glm"
 
 
 def test_invalid_mode_rejected_at_create(client) -> None:
     r = client.post("/api/projects", json={**BRIEF_BODY, "ideation_mode": "telepathy"})
     assert r.status_code == 422
+
+
+# --------------------------------------------------------------------------- #
+# brief grounding: the ideators must see the real brand/brief, not just the    #
+# territory label (regression — off-brief drift when only the label was sent). #
+# --------------------------------------------------------------------------- #
+def test_brief_context_composed_from_state(clean_env) -> None:
+    from app.graph.exploration import brief_context
+    from app.models.artifacts import Brief, CreativeBrief, Strategy
+
+    state = {
+        "brief": Brief(brief="Reposition the baby food brand", brand_name="Cerebelly", audience="new parents"),
+        "strategy": Strategy(positioning="the guided-development brand", key_message="every bite a building block"),
+        "creative_brief": CreativeBrief(
+            objective="make science feel like care", audience="new parents", key_message="building blocks", tone="warm"
+        ),
+    }
+    ctx = brief_context(state)
+    for needle in ("Cerebelly", "baby food", "new parents", "guided-development", "building block", "care"):
+        assert needle in ctx, f"{needle!r} missing from brief context"
+
+
+def test_conceptial_receives_full_brief_not_just_label(clean_env, monkeypatch) -> None:
+    from app.graph import exploration
+    from app.models.artifacts import Territory
+
+    captured = {}
+
+    def fake_conceptial(creative_brief, territory, n_ideas=1):
+        captured["cb"] = creative_brief
+        return [{"big_idea": "an on-brief idea"}]
+
+    monkeypatch.setattr(exploration, "conceptial_generate", fake_conceptial)
+
+    class _S:
+        conceptial_mode = "real"
+        IDEATOR_FALLBACK = "glm"
+
+    monkeypatch.setattr(exploration, "get_settings", lambda: _S())
+    ctx = "Brand: Cerebelly\nBrief: neuroscience baby food"
+    idea, brain = exploration.ideate_one(
+        "p", Territory(label="The Quiet Expert", lens="calm"), brief_context=ctx
+    )
+    assert brain == "conceptial" and idea == "an on-brief idea"
+    # the label alone is NOT enough — the brand + brief must be in the prompt
+    assert "Cerebelly" in captured["cb"] and "baby food" in captured["cb"]
+    assert "The Quiet Expert" in captured["cb"]  # territory still present too

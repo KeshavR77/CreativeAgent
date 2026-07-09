@@ -205,3 +205,31 @@ def test_generate_structured_normalizes_list_content_on_repair() -> None:
 
     out = generate_structured(FakeModel(), "msgs", Tiny)
     assert out.brief == "ok"
+
+
+def test_parse_with_repair_extracts_json_from_prose() -> None:
+    # GLM-style: JSON wrapped in explanation, no code fences. Must still parse.
+    from pydantic import BaseModel
+
+    from app.services.models import parse_with_repair
+
+    class Copy(BaseModel):
+        headline: str
+        cta: str
+
+    prose = (
+        'Here is the copy deck for this concept:\n'
+        '{"headline": "Never Feed Alone", "cta": "Start the journey"}\n'
+        'This works because it centers the parent, not the product.'
+    )
+    out = parse_with_repair(prose, Copy)
+    assert out.headline == "Never Feed Alone" and out.cta == "Start the journey"
+
+
+def test_extract_json_block_respects_strings_and_nesting() -> None:
+    from app.services.models import _extract_json_block
+
+    # braces inside a string value must not end the block early
+    text = 'blah {"a": {"b": "has } brace"}, "c": 1} trailing'
+    assert _extract_json_block(text) == '{"a": {"b": "has } brace"}, "c": 1}'
+    assert _extract_json_block("no json here") is None

@@ -64,7 +64,7 @@ def test_regenerate_big_idea_keeps_brain_truthful(monkeypatch) -> None:
     monkeypatch.setattr(
         exploration,
         "ideate_one",
-        lambda pid, terr, lens_tweak=None: ("a freshly regenerated idea", "claude_high_temp"),
+        lambda pid, terr, lens_tweak=None, brief_context="": ("a freshly regenerated idea", "claude_high_temp"),
     )
     d = Direction(
         id="dir-x",

@@ -83,8 +83,14 @@ class Settings(BaseSettings):
     GENERATOR_CRITIC_MODEL: str = "glm-4.5-air"  # critic model id (MUST differ from the generator)
 
     # --- Conceptial ---
+    # Points at a `creativity_steering/scripts/serve_steering.py` instance (the
+    # steered-generation harness in BrainstormLM), e.g. the Qwen2.5-32B-Instruct
+    # deployment shipped per BrainstormLM's docs/port_to_qwen32b.md. That harness
+    # has no built-in auth; CONCEPTIAL_API_KEY is only sent (as Bearer) when set,
+    # for callers fronted by an authenticating proxy.
     CONCEPTIAL_BASE_URL: str | None = None
     CONCEPTIAL_API_KEY: str | None = None
+    CONCEPTIAL_VARIANT: str | None = None  # steering variant name (unset -> package default)
     IDEATOR_FALLBACK: str = "claude_high_temp"
 
     # --- Search + embeddings ---

@@ -36,9 +36,12 @@ Prerequisites: Python 3.12, [`uv`](https://docs.astral.sh/uv/), Node + npm.
 make setup          # backend venv (uv) + install, then npm install
 make test           # backend pytest + frontend vitest (green with no keys)
 
-make dev-backend    # FastAPI at http://127.0.0.1:8000  (run from the repo root so .env loads)
+make dev-backend    # FastAPI at http://127.0.0.1:8080  (run from the repo root so .env loads)
 make dev-frontend   # Vite dev server at http://localhost:5173
 ```
+
+Port 8000 is deliberately left free for a locally-tunneled Conceptial server
+(`CONCEPTIAL_BASE_URL`, see `.env.example`) — the backend runs on 8080 instead.
 
 Then open the frontend, drop a PDF RFP (a sample is at
 `cerebelly-sample-rfp.pdf`), and drive the run through the two gates to export.
@@ -49,7 +52,7 @@ Then open the frontend, drop a PDF RFP (a sample is at
 |--------------------|----------------------------------------------------------|
 | `make setup`       | Backend venv + install (uv), then `npm install`          |
 | `make test`        | Backend pytest THEN frontend vitest; fails if either fails |
-| `make dev-backend` | `uvicorn app.main:app --reload`                          |
+| `make dev-backend` | `uvicorn app.main:app --reload --port 8080`              |
 | `make dev-frontend`| `vite` dev server                                        |
 | `make e2e`         | Golden-path end-to-end on mocks (no keys, no network)    |
 | `make fmt`         | Best-effort formatters                                   |
