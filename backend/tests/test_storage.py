@@ -1,4 +1,4 @@
-"""Storage-layer contract tests (Stage 02, §7/§16).
+"""Storage-layer contract tests.
 
 Registry CRUD + `list_resumable` filtering; event-log append atomicity, per-project
 seq uniqueness, `since()` ordering; in-process pub/sub delivery. Repos stay narrow

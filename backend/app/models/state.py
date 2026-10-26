@@ -1,4 +1,4 @@
-"""Graph state + reducers (§6.2).
+"""Graph state + reducers.
 
 `GraphState` is the LangGraph channel schema. Every key written by parallel
 `Send` branches carries a reducer so concurrent writes merge instead of clobber:
@@ -64,8 +64,8 @@ class GraphState(TypedDict, total=False):
     brief: Brief
     # How ideas are produced: "internal" (the reasoning model ideates, single
     # shot), "manual" (pause at the ideation gate; the operator brainstorms with
-    # an external tool and pastes ideas back), or "conceptial" (automatic
-    # brainstorm⇄critique rounds, Conceptial when configured).
+    # an external tool and pastes ideas back), or "auto" (automatic
+    # brainstorm⇄critique rounds, the external ideator when configured).
     ideation_mode: str
     # Externally-submitted / loop-produced ideas with their in-house critiques
     # (manual mode). Replaced wholesale on each gate submit.

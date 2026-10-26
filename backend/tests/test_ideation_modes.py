@@ -1,4 +1,4 @@
-"""The three ideation modes (§ideation): internal pass-through, manual
+"""The three ideation modes: internal pass-through, manual
 external-brainstorm gate with in-house critique, and the automatic
 brainstorm⇄critique loop. Keyless-first: everything runs on the mock."""
 
@@ -174,9 +174,9 @@ def test_manual_proceed_without_ideas_falls_back_to_internal_ideation(client) ->
 
 
 # --------------------------------------------------------------------------- #
-# mode: conceptial — automatic brainstorm⇄critique loop                        #
+# mode: auto — automatic brainstorm⇄critique loop                        #
 # --------------------------------------------------------------------------- #
-def test_conceptial_mode_loops_brainstorm_and_critique(client, monkeypatch) -> None:
+def test_ideator_mode_loops_brainstorm_and_critique(client, monkeypatch) -> None:
     # The mock idea critique scores 3.2 (< bar), so the loop regenerates once per
     # territory: ideator calls == 2 × territories.
     from app.graph import exploration
@@ -190,7 +190,7 @@ def test_conceptial_mode_loops_brainstorm_and_critique(client, monkeypatch) -> N
 
     monkeypatch.setattr(exploration, "ideate_one", counting_ideate)
 
-    pid = _to_gate1(client, "conceptial")
+    pid = _to_gate1(client, "auto")
     view = _approve_strategy(client, pid)
     assert view["state"] == "awaiting_curation"
     n_dirs = len(view["directions"])

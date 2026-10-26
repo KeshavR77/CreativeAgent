@@ -1,4 +1,4 @@
-"""Empty-environment /api/health contract (Stage 01, §4/§7)."""
+"""Empty-environment /api/health contract."""
 
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ def test_health_empty_env_exact_payload(clean_env) -> None:
         "status": "ok",
         "providers": {
             "claude": "mock",
-            "conceptial": "mock",
+            "ideator": "mock",
             "search": "mock",
             "embeddings": "mock",
         },

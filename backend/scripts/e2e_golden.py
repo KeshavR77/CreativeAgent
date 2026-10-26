@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""E2E golden path (Stage 06, §16) — the mock-first acceptance test for Phase 3.
+"""E2E golden path — the mock-first acceptance test for the whole product flow.
 
 Drives the whole product flow through the in-process app (TestClient) with the
 MOCK image lanes enabled (so sketches are generated and the moodboard is truly
@@ -20,7 +20,7 @@ import sys
 os.environ["APP_DISABLE_DOTENV"] = "1"
 os.environ["IMAGE_GEN_PROVIDER"] = "mock"
 os.environ["IMAGE_SOURCE_PROVIDER"] = "pexels"
-for _key in ("ANTHROPIC_API_KEY", "CONCEPTIAL_BASE_URL", "CONCEPTIAL_API_KEY", "TAVILY_API_KEY"):
+for _key in ("ANTHROPIC_API_KEY", "IDEATOR_BASE_URL", "IDEATOR_API_KEY", "TAVILY_API_KEY"):
     os.environ.pop(_key, None)
 
 from fastapi.testclient import TestClient  # noqa: E402

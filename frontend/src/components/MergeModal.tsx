@@ -1,6 +1,6 @@
 /**
  * MergeModal — pick, per field, which parent direction contributes to the merged
- * child (§14.2). The moodboard is chosen as a WHOLE board (A/B), not per tile.
+ * child. The moodboard is chosen as a WHOLE board (A/B), not per tile.
  * Sketches are deliberately excluded — they are auto-regenerated for the merged
  * direction post-merge, so offering them as a choice would be meaningless.
  *

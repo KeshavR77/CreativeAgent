@@ -1,13 +1,16 @@
-"""Critic calibration harness (Stage 10, §10 stretch).
+"""Critic calibration harness.
 
 Accumulates the critic's rubric scores + verdicts across runs so the
 ``ship``/``revise``/``kill`` thresholds and generator-vs-critic pairings can be
-tuned with evidence. Pure collection/aggregation + a JSONL store here; the
-runnable CLI is ``scripts/critic_calibration.py``.
+tuned with evidence. The thresholds in use today are untuned defaults — this
+harness exists to gather the data that would justify changing them, and has not
+been run against enough samples to recommend any particular value. Pure
+collection/aggregation + a JSONL store here; the runnable CLI is
+``scripts/critic_calibration.py``.
 
-TODO(§20 — Keshav): the persisted data-collection FORMAT (exact fields, storage
-backend, provenance/PII policy) is Keshav's call. The JSONL store below is a
-working default only — do not treat it as the final schema.
+TODO: the persisted data-collection format (exact fields, storage backend,
+provenance/PII policy) is undecided. The JSONL store below is a working default
+only — do not treat it as the final schema.
 """
 
 from __future__ import annotations
@@ -16,7 +19,7 @@ import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-# The five rubric criteria the critic scores (CritiqueScore, §6.1).
+# The five rubric criteria the critic scores (CritiqueScore).
 CRITERIA = ("distinctiveness", "strategic_fit", "memorability", "audience_resonance", "feasibility")
 
 

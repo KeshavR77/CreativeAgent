@@ -1,4 +1,4 @@
-"""Design-token renderer tests (Stage 06, §15/§16).
+"""Design-token renderer tests.
 
 Deterministic, LLM-free tokens from a package's palette/typography: W3C-shaped
 `tokens.json` (every token has `$value` + `$type`) and parseable `tokens.css`

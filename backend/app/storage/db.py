@@ -1,4 +1,4 @@
-"""SQLite engine + ORM tables (§7).
+"""SQLite engine + ORM tables.
 
 SQLAlchemy 2.0 typed models. Two tables:
   projects(id PK, state, brief_excerpt, error, created_at, updated_at)

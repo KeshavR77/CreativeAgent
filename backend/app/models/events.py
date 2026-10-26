@@ -1,9 +1,9 @@
-"""Run-state machine + event vocabulary (§6.3).
+"""Run-state machine + event vocabulary.
 
 `RunState` is the durable lifecycle state cached in the registry. `NODE_RUN_STATE`
 / `GATE_RUN_STATE` map graph nodes to the state reported while they run. Event
 type constants (with documented payload shapes) are the wire vocabulary the
-RunManager appends to the event log and the SSE stream replays (sub-plan 03).
+RunManager appends to the event log and the SSE stream replays.
 """
 
 from __future__ import annotations
@@ -100,7 +100,7 @@ class DirectionChange(str, Enum):
 
 
 # --------------------------------------------------------------------------- #
-# payload shapes (documentation; producers in sub-plan 03+ fill them)          #
+# payload shapes (documentation; the graph nodes fill them)                    #
 # total=False keeps them permissive — the SSE layer serializes plain dicts.    #
 # --------------------------------------------------------------------------- #
 class RunCreatedPayload(TypedDict, total=False):
@@ -120,7 +120,7 @@ class GatePayload(TypedDict, total=False):
 
 class DirectionCreatedPayload(TypedDict, total=False):
     direction_id: str
-    brain: str  # truthful ideator: conceptial | claude_high_temp | mock
+    brain: str  # truthful ideator: external_ideator | claude_high_temp | mock
 
 
 class DirectionUpdatedPayload(TypedDict, total=False):

@@ -1,4 +1,4 @@
-"""Domain-model contract tests (Stage 02, §6.1/§6.3/§16).
+"""Domain-model contract tests.
 
 These lock the artifact schemas, the events/run-state vocabulary, and the view
 shapes. Field names are contract: later stages import these models rather than
@@ -153,7 +153,7 @@ def test_brief_requires_nonempty_text() -> None:
 def test_research_and_strategy_field_names() -> None:
     dossier = ResearchDossier(
         sources=[SourceRef(title="t", url="https://x", snippet="s", query="q")],
-        competitors=[CompetitorNote(name="Allbirds", note="eco leader")],
+        competitors=[CompetitorNote(name="Incumbent One", note="eco leader")],
         audience_notes=[AudienceNote(insight="distrusts vague eco claims")],
         summary="market distrusts greenwashing",
     )
@@ -251,12 +251,12 @@ def test_imageref_url_never_base64() -> None:
 # ArtDirectionSpec — moodboard 4–8 when populated, empty allowed (04 stub)     #
 # --------------------------------------------------------------------------- #
 def test_moodboard_empty_allowed() -> None:
-    # Sub-plan 04 constructs the spec with an empty moodboard (filled in 05).
+    # build_spec constructs the spec with an empty moodboard (attach_visuals fills it).
     assert art_dir().moodboard == []
 
 
 # The model guards only the floor of 4; the exact count (targeting MOODBOARD_SIZE,
-# default 9) is enforced by the moodboard service (sub-plan 05).
+# default 9) is enforced by the moodboard service.
 @pytest.mark.parametrize("n", [4, 6, 8, 9, 12])
 def test_moodboard_valid_sizes(n: int) -> None:
     spec = art_dir(moodboard=[gen_img() for _ in range(n)])
@@ -311,7 +311,7 @@ def test_direction_sketches_generated_ok() -> None:
 
 
 def test_direction_sketches_placeholder_ok() -> None:
-    # Under zero keys image-gen is disabled -> placeholder fallback (sub-plan 05).
+    # Under zero keys image-gen is disabled -> placeholder fallback.
     d = direction(sketches=[ph_img(), ph_img()])
     assert all(s.kind == "placeholder" for s in d.sketches)
 
@@ -371,7 +371,7 @@ def test_field_constants_relationship() -> None:
     assert len(DIVERGENCE_FIELDS) >= 1
     # divergence fields are a subset of editable fields
     assert set(DIVERGENCE_FIELDS) <= set(EDITABLE_FIELDS)
-    # the three divergence inputs are pinned by §11 / sub-plan 04
+    # the three divergence inputs are pinned by contract
     assert set(DIVERGENCE_FIELDS) == {
         "big_idea",
         "copy.headline",

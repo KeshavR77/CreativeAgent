@@ -1,4 +1,4 @@
-"""Checkpointer serde registers our artifact types (Stage 09 follow-up).
+"""Checkpointer serde registers our artifact types.
 
 Verifies the msgpack allowlist names our artifact types explicitly (so the
 "Deserializing unregistered type ..." forward-compat warning is gone) AND that a

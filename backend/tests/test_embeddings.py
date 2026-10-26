@@ -1,4 +1,4 @@
-"""Embeddings service tests (Stage 04, §8.8/§16).
+"""Embeddings service tests.
 
 Keyless default is deterministic mock hash-vectors (no heavy deps). The TF-IDF
 backend is pure-Python; the `auto`/`minilm` backend lazy-imports

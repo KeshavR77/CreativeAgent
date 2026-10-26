@@ -1,8 +1,8 @@
-"""View models — API/SSE response shapes (§6.3, §13).
+"""View models — API/SSE response shapes.
 
 `ProjectSummary` is the registry-row projection used by list endpoints.
 `ProjectView` is the composed detail view (registry row + graph-state values +
-current interrupt payload) assembled in sub-plan 03. `EventOut` is the event-log
+current interrupt payload) assembled by the run manager. `EventOut` is the event-log
 / SSE serialization shape returned by `EventRepo.since`.
 """
 

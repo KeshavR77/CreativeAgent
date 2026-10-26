@@ -1,4 +1,4 @@
-"""Sketch service tests (Stage 05, §8.7/§16).
+"""Sketch service tests.
 
 Sketches are always generated (never sourced): SKETCH_COUNT distinct prompts when
 the image-gen lane is enabled, or a placeholder fallback (count preserved) when

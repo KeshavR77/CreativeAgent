@@ -1,4 +1,4 @@
-"""Artifact schemas — the data contracts for the whole pipeline (§6.1).
+"""Artifact schemas — the data contracts for the whole pipeline.
 
 Field names here are contract: later stages import these models rather than
 restating them. Invariants (image provenance, hex colours, critique length,
@@ -31,7 +31,7 @@ ImageKind = Literal["generated", "sourced", "placeholder"]
 Verdict = Literal["ship", "revise", "kill"]
 DirectionStatus = Literal["draft", "promoted", "killed", "merged_away"]
 # The ideator that produced a big_idea, recorded truthfully. Known values are
-# "conceptial", "claude_high_temp", "mock" — plus any configured provider label
+# "external_ideator", "claude_high_temp", "mock" — plus any configured provider label
 # (IDEATOR_FALLBACK, e.g. "glm") now that generation is model-agnostic. A plain
 # str, not a Literal: constraining it made every new provider a schema change.
 Brain = str
@@ -151,7 +151,7 @@ class VerbalIdentity(BaseModel):
 
 class CreativeBrief(BaseModel):
     """The written creative brief. Deliberately carries no visual/art-direction
-    fields — a creative brief must not prescribe visuals (§10.5)."""
+    fields — a creative brief must not prescribe visuals."""
 
     objective: str
     audience: str
@@ -193,10 +193,11 @@ class TypeChoice(BaseModel):
 
 
 class ArtDirectionSpec(BaseModel):
-    """Direction-level art direction. ``moodboard`` is empty during fan-out
-    (sub-plan 04 stub) and holds at least 4 provenance-complete images once built
-    (sub-plan 05); the exact count targets ``MOODBOARD_SIZE`` (default 9), which
-    the moodboard service enforces — the model only guards the floor of 4."""
+    """Direction-level art direction. ``moodboard`` is empty during fan-out and
+    until ``attach_visuals`` runs, after which it holds at least 4
+    provenance-complete images; the exact count targets ``MOODBOARD_SIZE``
+    (default 9), which the moodboard service enforces — the model only guards
+    the floor of 4."""
 
     mood_descriptors: list[str] = Field(default_factory=list)
     imagery_direction: str
@@ -227,7 +228,7 @@ class CopyDeck(BaseModel):
 # --------------------------------------------------------------------------- #
 class CritiqueScore(BaseModel):
     """Independent critic verdict, rubric v1. ``verdict`` is computed in code
-    (sub-plan 04); ``case_against`` must argue against the concept in ≥50 words;
+; ``case_against`` must argue against the concept in ≥50 words;
     ``critic_model`` records the model that critiqued."""
 
     distinctiveness: int
@@ -266,7 +267,7 @@ class IdeaReview(BaseModel):
     Used by the ideation gate (manual mode): externally-brainstormed ideas are
     parsed into these, critiqued by the independent critic, and surfaced back so
     the operator can iterate with their external tool. Also the shape returned by
-    the automatic brainstorm⇄critique loop (conceptial mode). ``score`` is the
+    the automatic brainstorm⇄critique loop (auto mode). ``score`` is the
     critic's 1–5 judgement; 0.0 means "not yet critiqued"."""
 
     territory_label: str
@@ -319,7 +320,7 @@ class Direction(BaseModel):
 
 
 class ConceptPackage(BaseModel):
-    """The finalized, export-bound package for one promoted direction (§10.10)."""
+    """The finalized, export-bound package for one promoted direction."""
 
     direction_id: str
     territory_label: str
@@ -335,7 +336,7 @@ class ConceptPackage(BaseModel):
 
 
 class CostRecord(BaseModel):
-    """One provider call's cost/usage (§8.8). For image lanes, ``output_tokens``
+    """One provider call's cost/usage. For image lanes, ``output_tokens``
     carries the image count."""
 
     agent: str
@@ -345,9 +346,9 @@ class CostRecord(BaseModel):
 
 
 # --------------------------------------------------------------------------- #
-# editable-fields / divergence-fields (§6.1 end) — imported by later stages    #
+# editable-fields / divergence-fields — the curation + divergence contract     #
 # --------------------------------------------------------------------------- #
-# Divergence is computed over exactly these three text fields (§11, sub-plan 04).
+# Divergence is computed over exactly these three text fields.
 DIVERGENCE_FIELDS: tuple[str, ...] = (
     "big_idea",
     "copy.headline",
@@ -355,7 +356,7 @@ DIVERGENCE_FIELDS: tuple[str, ...] = (
 )
 
 # Fields the curation gate's `edit` op may patch. A superset of DIVERGENCE_FIELDS;
-# edits to a divergence field re-route through the divergence node (sub-plan 04).
+# edits to a divergence field re-route through the divergence node.
 EDITABLE_FIELDS: tuple[str, ...] = (
     "big_idea",
     "copy.headline",

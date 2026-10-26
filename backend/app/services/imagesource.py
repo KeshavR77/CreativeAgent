@@ -1,4 +1,4 @@
-"""Image sourcing lane (§8.6).
+"""Image sourcing lane.
 
 `search(query, n)` returns up to ``n`` ``kind="sourced"`` ImageRefs from the
 bundled corpus, ranked by query/tag overlap, each with full sourced provenance
@@ -81,7 +81,7 @@ def _mock_search(query: str, n: int) -> list[ImageRef]:
 
 
 # --------------------------------------------------------------------------- #
-# real adapters (§8.6) — provenance mapping is pure + unit-tested; HTTP wrappers #
+# real adapters — provenance mapping is pure + unit-tested; HTTP wrappers #
 # stay thin. Transient failures raise ImageSourceUnavailable (lane fallback).   #
 # --------------------------------------------------------------------------- #
 def pexels_to_refs(payload: dict, n: int) -> list[ImageRef]:

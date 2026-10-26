@@ -1,4 +1,4 @@
-"""The six spine nodes of the Stage-03 graph (§10, sub-plan 03).
+"""The six spine nodes of the graph.
 
 Each node is a SYNC function ``def node(state: GraphState) -> dict`` returning a
 partial state delta (``GraphState`` is ``total=False``). Provider nodes emit

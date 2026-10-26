@@ -1,4 +1,4 @@
-"""Curation-ops API (§12.2/§13, sub-plan 04).
+"""Curation-ops API.
 
 Thin handlers over ``RunManager.resume`` — each turns a request into a curation
 op and drives the graph one gate step. Every op requires the project to be
@@ -154,7 +154,7 @@ async def finalize(project_id: str, body: FinalizeBody, request: Request) -> Pro
 
 
 # --------------------------------------------------------------------------- #
-# visual regeneration ops (§12.2) — no critique/divergence effect              #
+# visual regeneration ops — no critique/divergence effect #
 # --------------------------------------------------------------------------- #
 class SketchRegenBody(BaseModel):
     index: int

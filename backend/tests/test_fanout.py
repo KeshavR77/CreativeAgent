@@ -1,4 +1,4 @@
-"""Fan-out, critic & divergence contract tests (Stage 04, §16).
+"""Fan-out, critic & divergence contract tests.
 
 Drives the RunManager through Gate-1 approval into the parallel `Send` fan-out:
 K territory-seeded directions, each independently critiqued and divergence-scored,
@@ -58,7 +58,7 @@ async def test_fanout_directions_are_critiqued_and_scored(manager) -> None:
         assert d.critique is not None
         assert d.critique.verdict in ("ship", "revise", "kill")
         assert len(d.critique.case_against.split()) >= 50  # >=50-word case_against
-        assert d.brain == "mock"  # keyless -> truthful brain (not "conceptial")
+        assert d.brain == "mock"  # keyless -> truthful brain (not "external_ideator")
         assert d.divergence_score is not None
         assert d.sketches  # non-empty sketches (placeholders under keyless)
         assert d.art_direction.moodboard  # non-empty moodboard (placeholders under keyless)

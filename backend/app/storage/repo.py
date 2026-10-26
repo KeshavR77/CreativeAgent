@@ -1,10 +1,10 @@
-"""Registry, event-log, and in-process pub/sub repositories (§7).
+"""Registry, event-log, and in-process pub/sub repositories.
 
 Narrow, swappable repos over the SQLite tables in ``db.py``:
   * ``RegistryRepo`` — project CRUD + ``list_resumable`` filtering.
   * ``EventRepo``   — atomic ``append`` (returns a per-project seq), ``since``
                       backfill, and pub/sub publish after commit.
-  * ``EventBus``    — in-process fan-out; SSE consumes it in sub-plan 03.
+  * ``EventBus``    — in-process fan-out; the SSE route consumes it.
 
 Repos return view models (never live ORM rows) so callers never touch a
 detached/expired instance.

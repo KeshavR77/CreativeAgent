@@ -1,4 +1,4 @@
-"""Hardening: restart-resilience, retry, cancel, gate purity (Stage 09, §16).
+"""Hardening: restart-resilience, retry, cancel, gate purity.
 
 A "restart" is modeled by building a FRESH RunManager (new checkpointer) on the
 SAME on-disk registry/event/graph DBs — exactly what a new process sees. State is

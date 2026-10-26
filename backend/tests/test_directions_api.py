@@ -1,4 +1,4 @@
-"""Curation-ops API tests (Stage 04, §12.2/§13/§16).
+"""Curation-ops API tests.
 
 Exercises the direction ops over the real app: 409 outside awaiting_curation,
 edit validation (400 non-editable / 422 invalid value), promote/merge, the

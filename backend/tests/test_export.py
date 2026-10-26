@@ -1,4 +1,4 @@
-"""Export markdown renderer tests (Stage 06, §15/§16).
+"""Export markdown renderer tests.
 
 Deterministic, LLM-free markdown: a Sketches section, per-tile provenance lines of
 BOTH kinds, an Assets & licensing itemization, and an AI disclosure naming the

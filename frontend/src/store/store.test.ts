@@ -211,7 +211,7 @@ describe('mode-banner state from /health', () => {
   function health(overrides: Partial<HealthSnapshot> = {}): HealthSnapshot {
     return {
       status: 'ok',
-      providers: { claude: 'mock', conceptial: 'mock', search: 'mock', embeddings: 'mock' },
+      providers: { claude: 'mock', ideator: 'mock', search: 'mock', embeddings: 'mock' },
       image_gen: { enabled: false, provider: null },
       image_source: { enabled: false, provider: null },
       tracing: false,
@@ -228,7 +228,7 @@ describe('mode-banner state from /health', () => {
     // Regression: the backend health snapshot reports "real"/"mock", never "live".
     // A 'live' fixture would pass while the real banner stayed stuck on "MOCKED".
     useProjectStore.getState().setHealth(
-      health({ providers: { claude: 'real', conceptial: 'real', search: 'real', embeddings: 'real' } })
+      health({ providers: { claude: 'real', ideator: 'real', search: 'real', embeddings: 'real' } })
     );
     expect(useProjectStore.getState().mocked).toBe(false);
   });

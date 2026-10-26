@@ -1,9 +1,9 @@
-"""Ideation support (§ideation modes): parse externally-brainstormed ideas and
+"""Ideation support for the ideation modes: parse externally-brainstormed ideas and
 critique ideas with the independent critic.
 
 Used by the ideation gate (manual mode: the operator downloads an ideation
 packet, brainstorms with any external creative LLM/agent, pastes the output
-back) and by the automatic brainstorm⇄critique loop (conceptial mode).
+back) and by the automatic brainstorm⇄critique loop (auto mode).
 
 Keyless-first: the critic resolves to the deterministic mock with no keys, and
 parsing prefers the packet's documented format (pure text processing) with an
@@ -21,7 +21,7 @@ from app.services.mock_chat import _phrase, register_builder
 from app.services.models import generate_structured, get_chat_model
 from app.services.prompts import render_prompt
 
-# Ideas below this critic score get another brainstorm round (conceptial mode).
+# Ideas below this critic score get another brainstorm round (auto mode).
 IDEA_SCORE_BAR = 4.0
 
 

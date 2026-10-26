@@ -1,4 +1,4 @@
-"""Divergence engine tests (Stage 04, §11/§16).
+"""Divergence engine tests.
 
 Pairwise cosine distance over each direction's DIVERGENCE_FIELDS text
 (big_idea + copy.headline + art_direction.imagery_direction). Warning when the

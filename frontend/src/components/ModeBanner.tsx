@@ -1,5 +1,5 @@
 /**
- * ModeBanner — surfaces mock-mode transparency (§14.1). Shown whenever any
+ * ModeBanner — surfaces mock-mode transparency. Shown whenever any
  * provider is on the mock (from /health). The distinct claude_high_temp ideator
  * badge is rendered separately on directions/Studio, but the banner also notes it
  * when present so nothing about "this was mocked / high-temp" is hidden.

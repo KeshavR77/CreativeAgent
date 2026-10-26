@@ -1,6 +1,6 @@
 """Typed settings + provider resolution for the AI Creative Agency backend.
 
-Design invariants (Stage 01 contract §3):
+Design invariants:
 - Tolerates a fully empty environment; NEVER raises on a missing key.
 - No field is required-without-default.
 - Boolean env parsing: {"1","true","yes","on"} (case-insensitive) => True.
@@ -8,7 +8,7 @@ Design invariants (Stage 01 contract §3):
   returns the exact ``/api/health`` payload.
 - NO heavy ML imports (torch / sentence_transformers) at module load;
   ``EMBEDDINGS_BACKEND`` resolution is pure string logic. Model loading is
-  deferred to later sub-plans.
+  deferred until first use.
 """
 
 from __future__ import annotations
@@ -82,9 +82,9 @@ class Settings(BaseSettings):
     GENERATOR_MODEL: str = "glm-4.6"             # generator model id (override per provider)
     GENERATOR_CRITIC_MODEL: str = "glm-4.5-air"  # critic model id (MUST differ from the generator)
 
-    # --- Conceptial ---
-    CONCEPTIAL_BASE_URL: str | None = None
-    CONCEPTIAL_API_KEY: str | None = None
+    # --- External ideator ---
+    IDEATOR_BASE_URL: str | None = None
+    IDEATOR_API_KEY: str | None = None
     IDEATOR_FALLBACK: str = "claude_high_temp"
 
     # --- Search + embeddings ---
@@ -159,8 +159,8 @@ class Settings(BaseSettings):
         return self.CRITIC_MODEL if self.model_provider == "anthropic" else self.GENERATOR_CRITIC_MODEL
 
     @property
-    def conceptial_mode(self) -> str:
-        return "real" if _non_empty(self.CONCEPTIAL_BASE_URL) else "mock"
+    def ideator_mode(self) -> str:
+        return "real" if _non_empty(self.IDEATOR_BASE_URL) else "mock"
 
     @property
     def search_mode(self) -> str:
@@ -200,14 +200,14 @@ class Settings(BaseSettings):
         return _truthy(self.REFINE_ON_FINALIZE)
 
     def health_snapshot(self) -> dict:
-        """Exact /api/health payload (contract §4)."""
+        """Exact /api/health payload."""
         return {
             "status": "ok",
             "providers": {
                 # "claude" is the historical key for the CHAT lane: real whenever
                 # ANY chat provider (anthropic-compat or openai-compat) is keyed.
                 "claude": "real" if self.model_provider != "mock" else "mock",
-                "conceptial": self.conceptial_mode,
+                "ideator": self.ideator_mode,
                 "search": self.search_mode,
                 "embeddings": self.embeddings_mode,
             },
@@ -231,7 +231,7 @@ class Settings(BaseSettings):
             self.active_critic_model if self.model_provider != "mock" else "mock",
         )
         logger.info("provider claude=%s", self.claude_mode)
-        logger.info("provider conceptial=%s", self.conceptial_mode)
+        logger.info("provider ideator=%s", self.ideator_mode)
         logger.info("provider search=%s", self.search_mode)
         logger.info("provider embeddings=%s", self.embeddings_mode)
         logger.info(

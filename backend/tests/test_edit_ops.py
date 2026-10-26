@@ -1,4 +1,4 @@
-"""Curation edit/fork/merge op tests (Stage 04, §12.2/§16).
+"""Curation edit/fork/merge op tests.
 
 Patch application across editable fields (critique goes stale); fork lineage
 (parent_id + lens_tweak, freshly critiqued); merge (merged_from + parents

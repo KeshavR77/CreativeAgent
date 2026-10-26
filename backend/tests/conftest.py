@@ -34,8 +34,8 @@ _RELEVANT_ENV_KEYS = (
     "GENERATOR_MODEL",
     "GENERATOR_CRITIC_MODEL",
     "ZAI_API_KEY",
-    "CONCEPTIAL_BASE_URL",
-    "CONCEPTIAL_API_KEY",
+    "IDEATOR_BASE_URL",
+    "IDEATOR_API_KEY",
     "IDEATOR_FALLBACK",
     "TAVILY_API_KEY",
     "EMBEDDINGS_BACKEND",
@@ -65,7 +65,7 @@ def _disable_dotenv(monkeypatch: pytest.MonkeyPatch) -> None:
 
     The keyless-first contract ("empty env => every provider mock/disabled")
     must hold regardless of an operator's local ``.env`` — which *will* exist
-    from Stage 07 onward (real provider keys). ``get_settings()`` honors this
+    once real provider keys exist in a developer `.env`. ``get_settings()`` honors this
     flag by passing ``_env_file=None``, so only the real process environment
     (which the tests control via monkeypatch) drives resolution.
     """

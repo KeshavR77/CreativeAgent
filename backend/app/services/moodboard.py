@@ -1,4 +1,4 @@
-"""Hybrid moodboard service (§8.7, §10.7 step 4).
+"""Hybrid moodboard service.
 
 Builds a ``MOODBOARD_SIZE`` board that is hybrid by construction: a generated
 share (``round(size * ratio)``) + a sourced share. If one lane is down its share

@@ -1,4 +1,4 @@
-"""Graph assembly (§9/§10, sub-plans 03–04 + ideation modes).
+"""Graph assembly: the spine, the gates, and the ideation modes.
 
 Wires the full backend graph over ``GraphState``:
 
@@ -6,7 +6,7 @@ Wires the full backend graph over ``GraphState``:
              strategy_gate --(approve)--> verbal -> briefwrite -> seed
              strategy_gate --(reject)---> strategize      (re-runs, re-interrupts)
     seed -> ideation_gate
-             ideation_gate --(internal/conceptial)--> Send per territory (no pause)
+             ideation_gate --(internal/auto)--> Send per territory (no pause)
              ideation_gate --(manual: submit)------> ideation_gate (critique loop)
              ideation_gate --(manual: proceed)-----> Send per territory
     explore_territory -> divergence -> curation_gate
@@ -51,7 +51,7 @@ def build_graph(checkpointer):
     retry = RetryPolicy(max_attempts=3, retry_on=_transient)
 
     g = StateGraph(GraphState)
-    # --- spine (sub-plan 03) ---
+    # --- spine ---
     g.add_node("interrogate", interrogate)
     g.add_node("research", research, retry_policy=retry)
     g.add_node("strategize", strategize, retry_policy=retry)
@@ -61,7 +61,7 @@ def build_graph(checkpointer):
     g.add_node("seed", seed, retry_policy=retry)
     # --- ideation gate + fan-out + gate 2 ---
     # ideation_gate routes dynamically: straight to the Send fan-out (internal /
-    # conceptial), or interrupt-and-loop for externally-brainstormed ideas (manual).
+    # auto), or interrupt-and-loop for externally-brainstormed ideas (manual).
     g.add_node("ideation_gate", ideation_gate)
     # explore_territory self-handles branch failure AND retries transient GLM
     # errors internally; the node-level retry is a second belt for transport blips.

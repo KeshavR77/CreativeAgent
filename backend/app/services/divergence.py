@@ -1,4 +1,4 @@
-"""Divergence engine (§11).
+"""Divergence engine.
 
 Measures how distinct a set of directions are from one another via pairwise
 cosine distance over their DIVERGENCE_FIELDS text (text-only by design — never

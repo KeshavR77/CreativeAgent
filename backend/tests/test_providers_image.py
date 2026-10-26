@@ -1,8 +1,8 @@
-"""Real image-provider adapter tests (Stage 07, §8.6/§16).
+"""Real image-provider adapter tests.
 
 Provenance mapping is pure (fixtures); the fal HTTP path uses a MockTransport (no
 network, no real keys). A real provider only activates when its key is present —
-otherwise the lane stays on the mock (so Stage 05/06 mock-first tests are green).
+otherwise the lane stays on the mock (so the keyless suite stays green).
 """
 
 from __future__ import annotations

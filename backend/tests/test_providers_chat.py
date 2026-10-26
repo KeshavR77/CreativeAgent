@@ -1,4 +1,4 @@
-"""Real chat-provider tests (Stage 07, §8.1/§16).
+"""Real chat-provider tests.
 
 Config/constructor-level only — CI has ZERO keys and makes NO network calls
 (ChatAnthropic is monkeypatched). Enforces critic independence and cost tracking;

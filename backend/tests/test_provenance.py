@@ -1,4 +1,4 @@
-"""Provenance-enforcement tests (Stage 05, §16).
+"""Provenance-enforcement tests.
 
 No ImageRef failing its per-kind rule can reach state, a view, or export-bound
 assembly — provenance is validated at the model boundary (unconstructible when

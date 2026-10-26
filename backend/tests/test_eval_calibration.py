@@ -1,4 +1,4 @@
-"""Critic calibration harness tests (Stage 10, §16).
+"""Critic calibration harness tests.
 
 Sample collection from project views, aggregation math (score distributions,
 verdict base rates, model pairings), JSON shape, and the JSONL store that
@@ -55,7 +55,7 @@ def test_collect_samples_skips_uncritiqued() -> None:
     views = [
         _View(
             [
-                _dir("d1", "conceptial", _crit("ship", 5, 4, 5, 4, 5)),
+                _dir("d1", "external_ideator", _crit("ship", 5, 4, 5, 4, 5)),
                 _dir("d2", "mock", None),  # not yet critiqued -> skipped
             ]
         ),
@@ -65,14 +65,14 @@ def test_collect_samples_skips_uncritiqued() -> None:
     assert len(samples) == 2
     assert {s.verdict for s in samples} == {"ship", "kill"}
     assert samples[0].scores["distinctiveness"] == 5
-    assert samples[0].generator_model == "conceptial"
+    assert samples[0].generator_model == "external_ideator"
     assert samples[0].critic_model == "mock-critic"
 
 
 def test_summarize_calibration_math_and_json() -> None:
     samples = [
-        CritiqueSample("ship", {"distinctiveness": 5, "strategic_fit": 4, "memorability": 5, "audience_resonance": 4, "feasibility": 5}, "conceptial", "mock-critic"),
-        CritiqueSample("kill", {"distinctiveness": 1, "strategic_fit": 2, "memorability": 1, "audience_resonance": 2, "feasibility": 3}, "conceptial", "mock-critic"),
+        CritiqueSample("ship", {"distinctiveness": 5, "strategic_fit": 4, "memorability": 5, "audience_resonance": 4, "feasibility": 5}, "external_ideator", "mock-critic"),
+        CritiqueSample("kill", {"distinctiveness": 1, "strategic_fit": 2, "memorability": 1, "audience_resonance": 2, "feasibility": 3}, "external_ideator", "mock-critic"),
         CritiqueSample("ship", {"distinctiveness": 3, "strategic_fit": 3, "memorability": 3, "audience_resonance": 3, "feasibility": 3}, "claude_high_temp", "mock-critic"),
     ]
     summary = cal.summarize_calibration(samples)
@@ -85,13 +85,13 @@ def test_summarize_calibration_math_and_json() -> None:
     assert dist["histogram"] == {"1": 1, "3": 1, "5": 1}
 
     assert summary["verdict_base_rates"] == {"ship": 2, "kill": 1}
-    assert summary["model_pairings"]["conceptial->mock-critic"] == 2
+    assert summary["model_pairings"]["external_ideator->mock-critic"] == 2
     json.dumps(summary)  # machine-readable
 
 
 def test_jsonl_store_accumulates_across_runs(tmp_path) -> None:
     path = tmp_path / "eval" / "critiques.jsonl"
-    s1 = [CritiqueSample("ship", {c: 4 for c in cal.CRITERIA}, "conceptial", "mock-critic")]
+    s1 = [CritiqueSample("ship", {c: 4 for c in cal.CRITERIA}, "external_ideator", "mock-critic")]
     s2 = [CritiqueSample("kill", {c: 2 for c in cal.CRITERIA}, "mock", "mock-critic")]
 
     assert cal.append_samples(path, s1) == 1

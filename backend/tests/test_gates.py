@@ -1,4 +1,4 @@
-"""Curation-gate routing tests (Stage 04, §12.2/§16).
+"""Curation-gate routing tests.
 
 Drives the RunManager to the curation gate and exercises the op routing table:
 promote self-loops; finalize requires a promotion (and then produces packages);

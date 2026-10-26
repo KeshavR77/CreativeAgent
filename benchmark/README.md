@@ -20,12 +20,12 @@ Both systems consume the identical intake object — the agent's `Brief` schema:
 | Agent | `POST /api/projects` with the Brief JSON, then start + drive gates |
 | Baseline | `benchmark/run_baseline.py <brief.json>` — same JSON, one API call |
 
-`briefs/` holds two: `sneaker.json` (the repo's canonical fixture) and `cerebelly.json`
-(the `cerebelly-sample-rfp.pdf` RFP — brand positioning for a science-founded baby-food
-brand — distilled into the intake schema; both systems see this distillation, so
-neither is advantaged). Note the distillation is a manual, lossy step: if RFP fidelity
-matters, re-extract the full PDF text into the `brief` field — the runner passes it
-through untruncated.
+`briefs/` holds two: `sneaker.json` (the repo's canonical fixture) and `nutrition.json`
+(the fictional `sample-rfp.pdf` RFP — brand positioning for a science-founded premium
+nutrition brand — distilled into the intake schema; both systems see this distillation,
+so neither is advantaged). Note the distillation is a manual, lossy step: if RFP
+fidelity matters, re-extract the full PDF text into the `brief` field — the runner
+passes it through untruncated.
 
 ## The baseline stays a baseline
 
@@ -42,10 +42,10 @@ experiment-design change — make it explicitly, don't fold it in.
 Needs `ANTHROPIC_API_KEY` (or an `ant auth login` profile). From the repo root:
 
 ```sh
-backend/.venv/bin/python benchmark/run_baseline.py benchmark/briefs/cerebelly.json
+backend/.venv/bin/python benchmark/run_baseline.py benchmark/briefs/nutrition.json
 backend/.venv/bin/python benchmark/run_baseline.py benchmark/briefs/sneaker.json \
     --model claude-sonnet-4-5 --no-thinking   # match the agent's CLAUDE_MODEL
-backend/.venv/bin/python benchmark/run_baseline.py benchmark/briefs/cerebelly.json --dry-run
+backend/.venv/bin/python benchmark/run_baseline.py benchmark/briefs/nutrition.json --dry-run
 ```
 
 Default model is `claude-opus-4-8` with adaptive thinking and `--max-tokens 32000`

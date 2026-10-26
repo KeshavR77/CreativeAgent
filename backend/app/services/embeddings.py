@@ -1,4 +1,4 @@
-"""Text embeddings for the divergence engine (§8.8).
+"""Text embeddings for the divergence engine.
 
 Backend resolves from ``EMBEDDINGS_BACKEND``:
   * unset / ``mock`` / unknown -> deterministic hash-bucket vectors (no deps);

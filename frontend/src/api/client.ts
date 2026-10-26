@@ -1,7 +1,7 @@
 /**
- * Typed REST client over the backend (§13). fetch-based, base "/api". The frontend
+ * Typed REST client over the backend. fetch-based, base "/api". The frontend
  * talks ONLY to this surface + the SSE stream — never to any model/image/search
- * provider directly (§2).
+ * provider directly.
  *
  * Every op returns the updated ProjectView (the curation/gate handlers all do),
  * except create/start/list/health and the export/token downloads. A non-2xx

@@ -1,4 +1,4 @@
-"""Chat-model resolution + structured-output repair loop (§8.1/§8.4).
+"""Chat-model resolution + structured-output repair loop.
 
 `get_chat_model(role)` is model-agnostic: keyless it returns the mock; otherwise
 it resolves the provider from config (`model_provider`) — Anthropic, or ANY
@@ -144,7 +144,7 @@ def get_chat_model(
     Mock when keyless; otherwise whichever provider ``settings.model_provider``
     resolves to — Anthropic, or ANY OpenAI-compatible endpoint (GLM/z.ai, OpenAI,
     DeepSeek, …). ``seed_extra`` (e.g. a territory label) is folded into the mock
-    seed so parallel branches produce distinct, deterministic output (§8.2).
+    seed so parallel branches produce distinct, deterministic output.
     """
     settings = get_settings()
     provider = settings.model_provider
@@ -172,7 +172,7 @@ def _build_real_model(settings, provider: str, model_name: str, temperature: flo
         # Key + base URL come from Settings (the same source as the provider
         # DECISION), never implicitly from os.environ — otherwise a process
         # where .env loaded but nothing was exported claims "real" and then
-        # authenticates with an empty key against the wrong host (§split-brain).
+        # authenticates with an empty key against the wrong host.
         kwargs: dict = {}
         if settings.ANTHROPIC_API_KEY:
             kwargs["api_key"] = settings.ANTHROPIC_API_KEY
@@ -206,7 +206,7 @@ def _build_real_model(settings, provider: str, model_name: str, temperature: flo
 
 def resolve_model_name(role: str, settings) -> str:
     """Generator vs critic model id for the active provider. Enforces critic
-    independence (§8.1): a real critic must use a model distinct from the
+    independence: a real critic must use a model distinct from the
     generator, or the critique isn't independent."""
     generator = settings.active_generator_model
     critic = settings.active_critic_model

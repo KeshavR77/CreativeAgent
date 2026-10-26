@@ -1,12 +1,12 @@
 #!/usr/bin/env python
-"""A/B divergence harness CLI (Stage 10, §10 stretch).
+"""A/B divergence harness CLI.
 
 Runs the same brief N times per arm and reports how divergent each arm's
 direction sets are, using the PRODUCTION divergence metric verbatim:
 
-  * arm ``conceptial``       — the Conceptial ideator      (needs CONCEPTIAL_BASE_URL)
-  * arm ``claude_high_temp`` — the plain-Claude baseline   (needs ANTHROPIC_API_KEY)
-  * arm ``mock``             — the keyless floor           (always runnable)
+  * arm ``external_ideator`` — the external ideator       (needs IDEATOR_BASE_URL)
+  * arm ``claude_high_temp`` — the plain-LLM baseline     (needs ANTHROPIC_API_KEY)
+  * arm ``mock``             — the keyless floor          (always runnable)
 
 Keyless it runs the mock arm only (still emits a valid report); with real keys in
 the environment it adds the real arms it has keys for. Writes machine-readable
@@ -14,7 +14,9 @@ JSON (``--out``) and prints a human summary.
 
   python backend/scripts/ab_divergence.py --n 5 --out data/eval/ab.json
 
-Deferred to Keshav (§20): real Conceptial URL/auth; K / warn-threshold tuning.
+No arm is expected to win: the report states what the runs measured, nothing more.
+Unresolved: an ideator URL/auth to point the treatment arm at, and whether K or
+the divergence warn threshold want retuning once there is data.
 """
 
 from __future__ import annotations
@@ -31,7 +33,7 @@ os.environ.setdefault("APP_DISABLE_DOTENV", "1")
 
 from app.evaluation.divergence_ab import (  # noqa: E402
     ARM_CLAUDE,
-    ARM_CONCEPTIAL,
+    ARM_IDEATOR,
     ARM_MOCK,
     compare,
     human_summary,
@@ -44,7 +46,7 @@ BRIEF = Brief(
     audience="runners frustrated by greenwashing",
 )
 
-_PROVIDER_KEYS = ("ANTHROPIC_API_KEY", "CONCEPTIAL_BASE_URL", "CONCEPTIAL_API_KEY", "TAVILY_API_KEY")
+_PROVIDER_KEYS = ("ANTHROPIC_API_KEY", "IDEATOR_BASE_URL", "IDEATOR_API_KEY", "TAVILY_API_KEY")
 
 
 def _configure_arm(arm: str, ambient: dict) -> bool:
@@ -61,13 +63,13 @@ def _configure_arm(arm: str, ambient: dict) -> bool:
     if arm == ARM_CLAUDE:
         if not ambient.get("ANTHROPIC_API_KEY"):
             return False
-        os.environ["ANTHROPIC_API_KEY"] = ambient["ANTHROPIC_API_KEY"]  # conceptial cleared -> claude fallback
+        os.environ["ANTHROPIC_API_KEY"] = ambient["ANTHROPIC_API_KEY"]  # ideator cleared -> claude fallback
         return True
-    if arm == ARM_CONCEPTIAL:
-        if not ambient.get("CONCEPTIAL_BASE_URL"):
+    if arm == ARM_IDEATOR:
+        if not ambient.get("IDEATOR_BASE_URL"):
             return False
-        os.environ["CONCEPTIAL_BASE_URL"] = ambient["CONCEPTIAL_BASE_URL"]
-        for k in ("CONCEPTIAL_API_KEY", "ANTHROPIC_API_KEY"):  # critic/spine may still be real
+        os.environ["IDEATOR_BASE_URL"] = ambient["IDEATOR_BASE_URL"]
+        for k in ("IDEATOR_API_KEY", "ANTHROPIC_API_KEY"):  # critic/spine may still be real
             if ambient.get(k):
                 os.environ[k] = ambient[k]
         return True
@@ -76,8 +78,8 @@ def _configure_arm(arm: str, ambient: dict) -> bool:
 
 def _default_arms(ambient: dict) -> list[str]:
     arms: list[str] = []
-    if ambient.get("CONCEPTIAL_BASE_URL"):
-        arms.append(ARM_CONCEPTIAL)
+    if ambient.get("IDEATOR_BASE_URL"):
+        arms.append(ARM_IDEATOR)
     if ambient.get("ANTHROPIC_API_KEY"):
         arms.append(ARM_CLAUDE)
     arms.append(ARM_MOCK)

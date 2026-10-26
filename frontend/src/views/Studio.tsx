@@ -1,5 +1,5 @@
 /**
- * Studio (§14.1) — the live theater. Binds the project to the store (SSE + view
+ * Studio — the live theater. Binds the project to the store (SSE + view
  * rehydrate), then renders:
  *   - PipelineSpine: node-by-node progress driven by RunState.
  *   - AgentStream: the batched agent-token transcript from the store.

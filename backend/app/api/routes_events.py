@@ -1,4 +1,4 @@
-"""Server-Sent Events stream for a project (§13, sub-plan 03).
+"""Server-Sent Events stream for a project.
 
 ``GET /api/projects/{id}/events`` replays the durable event log from
 ``Last-Event-ID`` (a per-project ``seq``; default 0) and then tails live events

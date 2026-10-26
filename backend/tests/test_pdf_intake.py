@@ -11,8 +11,8 @@ from fastapi.testclient import TestClient
 from app.main import app
 from app.services import pdf_intake
 
-# The real 4-page Cerebelly RFP committed at the repo root — the canonical fixture.
-_RFP = Path(__file__).resolve().parents[2] / "cerebelly-sample-rfp.pdf"
+# The fictional 4-page sample RFP committed at the repo root — the canonical fixture.
+_RFP = Path(__file__).resolve().parents[2] / "sample-rfp.pdf"
 
 
 @pytest.fixture
@@ -31,12 +31,13 @@ def test_extract_text_rejects_empty(clean_env):
         pdf_intake.extract_text(b"")
 
 
-@pytest.mark.skipif(not _RFP.exists(), reason="MockBrief.pdf fixture not present")
+@pytest.mark.skipif(not _RFP.exists(), reason="sample-rfp.pdf fixture not present")
 def test_extract_text_from_real_rfp(clean_env):
     text = pdf_intake.extract_text(_RFP.read_bytes())
-    # pypdf can drop spaces on this PDF's font, so match case- and space-insensitively.
+    # pypdf can drop spaces depending on the PDF's font, so match case- and
+    # space-insensitively.
     squashed = text.lower().replace(" ", "")
-    assert "cerebelly" in squashed
+    assert "examplenutrition" in squashed
     assert len(text) > 500
 
 
@@ -49,7 +50,7 @@ def test_brief_from_rfp_keyless_is_deterministic_and_nonempty(clean_env):
     assert brief.brief == again.brief
 
 
-@pytest.mark.skipif(not _RFP.exists(), reason="MockBrief.pdf fixture not present")
+@pytest.mark.skipif(not _RFP.exists(), reason="sample-rfp.pdf fixture not present")
 def test_create_project_from_pdf_endpoint(client):
     r = client.post(
         "/api/projects/from-pdf",

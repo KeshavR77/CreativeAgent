@@ -1,4 +1,4 @@
-"""Prompt loading/rendering (§10, sub-plan 07 uses these against a real model).
+"""Prompt loading/rendering — shared by the mock and real model lanes.
 
 ``render_prompt(name, **vars)`` reads ``app/prompts/{name}.md`` and substitutes
 each ``{{key}}`` token with ``str(value)``. The mock model ignores prompt content

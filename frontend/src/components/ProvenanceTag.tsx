@@ -1,5 +1,5 @@
 /**
- * ProvenanceTag — the mandatory attribution shown on EVERY image tile (§19 trap:
+ * ProvenanceTag — the mandatory attribution shown on EVERY image tile (trap:
  * never surface an image without its provenance). Renders per-kind:
  *   generated:   "AI-generated · <gen_model>"   (prompt exposed on the tile hover)
  *   sourced:     "<provider> · <license> · © <attribution>"  (links source_url)

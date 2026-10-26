@@ -1,4 +1,4 @@
-"""Design-token renderers (§15).
+"""Design-token renderers.
 
 Deterministic, LLM-free translation of a package's palette + typography into
 machine-readable design tokens: a W3C-style ``tokens.json`` (every token has

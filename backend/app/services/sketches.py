@@ -1,4 +1,4 @@
-"""Sketch service (§8.7, §10.7 step 3).
+"""Sketch service.
 
 Produces N **distinct** exploratory concept sketches for a direction — varying
 medium/angle, seeded by big_idea + territory lens, with NO brand names, logos, or
