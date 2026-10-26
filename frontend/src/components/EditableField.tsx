@@ -1,5 +1,5 @@
 /**
- * EditableField — inline edit for one §6.1-editable field. Read mode shows the
+ * EditableField — inline edit for one.1-editable field. Read mode shows the
  * label + current value; Edit swaps in a textbox; Save emits the backend /edit
  * payload shape `{ field, value }`. The value is applied optimistically (marked
  * data-pending) and rolled back if the save rejects (e.g. a 409 mid-flight).

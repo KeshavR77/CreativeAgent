@@ -1,4 +1,4 @@
-"""GraphState + reducer contract tests (Stage 02, §6.2/§16).
+"""GraphState + reducer contract tests.
 
 Every state key written by parallel `Send` branches must carry a reducer, or
 concurrent writes clobber each other. `directions` upserts by id; `costs` and

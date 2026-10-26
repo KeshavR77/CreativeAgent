@@ -1,4 +1,4 @@
-"""Graph-spine contract tests (Stage 03 Slice B, §16).
+"""Graph-spine contract tests.
 
 Drives the ``RunManager`` directly against a tmp_path SQLite registry/event log
 and a real ``AsyncSqliteSaver`` checkpointer. Proves the walking skeleton:
@@ -72,7 +72,7 @@ async def test_approve_fans_out_to_curation_gate(manager) -> None:
     await task
 
     # Gate-1 approval runs verbal/briefwrite/seed, then fans out and pauses at
-    # Gate 2 (curation) — no longer straight to END (sub-plan 04).
+    # Gate 2 (curation) — no longer straight to END.
     assert registry.get("p1").state == RunState.awaiting_curation.value
 
     view = await rm.get_view("p1")

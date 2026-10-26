@@ -1,4 +1,4 @@
-"""A/B divergence harness tests (Stage 10, §16).
+"""A/B divergence harness tests.
 
 Aggregation math, arm labeling, JSON shape, and the guard that the harness uses
 the PRODUCTION divergence metric (no forked pairwise logic). Plus one integration
@@ -31,7 +31,7 @@ def _dir(did: str, big_idea: str, headline: str, imagery: str, brain: str = "moc
 
 
 def test_harness_uses_production_metric_verbatim() -> None:
-    # Guard (§10): the harness imports the production metric, not a forked copy.
+    # Guard: the harness imports the production metric, not a forked copy.
     assert ab.divergence_report is divergence_report
 
     dirs = [
@@ -70,17 +70,18 @@ def test_summarize_arm_raises_when_no_runs() -> None:
 
 def test_compare_shape_verdict_and_json_serializable() -> None:
     records = [
-        # Conceptial diverges MORE (higher mean) than the claude baseline.
-        RunRecord(arm=ab.ARM_CONCEPTIAL, min=0.5, mean=0.8, warning=False, n_directions=3, brains=["conceptial"] * 3),
-        RunRecord(arm=ab.ARM_CONCEPTIAL, min=0.5, mean=0.8, warning=False, n_directions=3, brains=["conceptial"] * 3),
+        # Fixture: the ideator arm diverges MORE (higher mean) than the claude baseline.
+        # Hand-built numbers exercising compare()'s verdict branch, not a measurement.
+        RunRecord(arm=ab.ARM_IDEATOR, min=0.5, mean=0.8, warning=False, n_directions=3, brains=["external_ideator"] * 3),
+        RunRecord(arm=ab.ARM_IDEATOR, min=0.5, mean=0.8, warning=False, n_directions=3, brains=["external_ideator"] * 3),
         RunRecord(arm=ab.ARM_CLAUDE, min=0.2, mean=0.4, warning=True, n_directions=3, brains=["claude_high_temp"] * 3),
         RunRecord(arm=ab.ARM_CLAUDE, min=0.2, mean=0.4, warning=True, n_directions=3, brains=["claude_high_temp"] * 3),
     ]
     out = ab.compare(records)
-    assert set(out["arms"]) == {ab.ARM_CONCEPTIAL, ab.ARM_CLAUDE}
+    assert set(out["arms"]) == {ab.ARM_IDEATOR, ab.ARM_CLAUDE}
     assert out["arms"][ab.ARM_CLAUDE]["warn_rate"] == pytest.approx(1.0)
     v = out["verdict"]
-    assert v["treatment"] == ab.ARM_CONCEPTIAL and v["baseline"] == ab.ARM_CLAUDE
+    assert v["treatment"] == ab.ARM_IDEATOR and v["baseline"] == ab.ARM_CLAUDE
     assert v["treatment_more_divergent"] is True
     assert v["mean_divergence_delta"] == pytest.approx(0.4)  # 0.8 - 0.4
     json.dumps(out)  # machine-readable output
@@ -88,11 +89,11 @@ def test_compare_shape_verdict_and_json_serializable() -> None:
 
 def test_human_summary_mentions_arms_and_verdict() -> None:
     records = [
-        RunRecord(arm=ab.ARM_CONCEPTIAL, min=0.5, mean=0.8, warning=False, n_directions=3, brains=["conceptial"] * 3),
+        RunRecord(arm=ab.ARM_IDEATOR, min=0.5, mean=0.8, warning=False, n_directions=3, brains=["external_ideator"] * 3),
         RunRecord(arm=ab.ARM_CLAUDE, min=0.2, mean=0.4, warning=True, n_directions=3, brains=["claude_high_temp"] * 3),
     ]
     text = ab.human_summary(ab.compare(records))
-    assert ab.ARM_CONCEPTIAL in text and ab.ARM_CLAUDE in text
+    assert ab.ARM_IDEATOR in text and ab.ARM_CLAUDE in text
     assert "Verdict" in text
 
 

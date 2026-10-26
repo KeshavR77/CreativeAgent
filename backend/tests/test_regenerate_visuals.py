@@ -1,4 +1,4 @@
-"""Sketch / moodboard regeneration op tests (Stage 05, §12.2/§16).
+"""Sketch / moodboard regeneration op tests.
 
 Visual regeneration updates only the visuals: it NEVER marks the critique stale
 and NEVER re-runs divergence (unlike the text ops). Image lanes are enabled here

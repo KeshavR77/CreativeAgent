@@ -83,7 +83,7 @@ describe('<DirectionCard />', () => {
     expect(screen.getByText(/claude_high_temp/i)).toBeInTheDocument();
   });
 
-  it('renders an EditableField for every §6.1 editable field', () => {
+  it('renders an EditableField for every editable field', () => {
     render(<DirectionCard direction={makeDirection()} {...noopActions} />);
     for (const f of [
       'big_idea',

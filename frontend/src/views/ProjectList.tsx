@@ -1,5 +1,5 @@
 /**
- * ProjectList (§14.1) — the entry point. The normal flow is to drop a client RFP
+ * ProjectList — the entry point. The normal flow is to drop a client RFP
  * PDF: the backend distills it into a brief and seeds a project. A plain-text brief
  * is offered as a secondary path. Either way the project is created + started, then
  * routed to the surface implied by the resulting RunState.
@@ -25,9 +25,9 @@ const MODES: { value: IdeationMode; label: string; blurb: string }[] = [
     blurb: 'Pause for a downloadable packet; brainstorm with any tool, paste ideas back for critique.',
   },
   {
-    value: 'conceptial',
+    value: 'auto',
     label: 'Auto loop',
-    blurb: 'Brainstorm ⇄ critique rounds, automatically (Conceptial when configured).',
+    blurb: 'Brainstorm ⇄ critique rounds, automatically (uses the external ideator when configured).',
   },
 ];
 

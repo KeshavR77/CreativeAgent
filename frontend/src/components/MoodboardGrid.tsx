@@ -4,7 +4,7 @@
  * © <attribution>" linking source_url. Per-tile ⟳ maps to
  * /regenerate_moodboard_item{index, kind}; the SourceToggle regenerates the same
  * tile with the opposite kind (generated ⇄ sourced), passing `kind` so the backend
- * swaps generation mode. Every tile keeps its ProvenanceTag (§19).
+ * swaps generation mode. Every tile keeps its ProvenanceTag.
  */
 import type { ImageKind, ImageRef } from '../api/types';
 import { ImageTile } from './ImageTile';

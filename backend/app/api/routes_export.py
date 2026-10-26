@@ -1,4 +1,4 @@
-"""Export + design-token API and the markdown renderer (§13/§15).
+"""Export + design-token API and the markdown renderer.
 
 The product's actual deliverable: a deterministic, LLM-free markdown concept
 package with full per-image provenance, plus W3C design tokens / CSS. No model

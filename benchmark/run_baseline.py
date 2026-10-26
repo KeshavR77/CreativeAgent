@@ -10,10 +10,10 @@ call, no tools, no retrieval, no orchestration.
 Usage (from the repo root; needs ANTHROPIC_API_KEY or an `ant auth login`
 profile):
 
-    backend/.venv/bin/python benchmark/run_baseline.py benchmark/briefs/cerebelly.json
+    backend/.venv/bin/python benchmark/run_baseline.py benchmark/briefs/nutrition.json
     backend/.venv/bin/python benchmark/run_baseline.py benchmark/briefs/sneaker.json \
         --model claude-sonnet-4-5 --no-thinking
-    backend/.venv/bin/python benchmark/run_baseline.py benchmark/briefs/cerebelly.json --dry-run
+    backend/.venv/bin/python benchmark/run_baseline.py benchmark/briefs/nutrition.json --dry-run
 
 Pass `--model` matching the agent's CLAUDE_MODEL to isolate architecture from
 model capability. Models older than the 4.6 family (e.g. claude-sonnet-4-5)

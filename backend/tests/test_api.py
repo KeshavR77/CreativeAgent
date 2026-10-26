@@ -1,4 +1,4 @@
-"""API + SSE contract tests (Stage 03 Slice B, §16).
+"""API + SSE contract tests.
 
 Exercises the project lifecycle over the real ``app.main:app`` via TestClient:
 create -> list -> start (runs to the strategy gate) -> gate reject/approve, plus
@@ -117,7 +117,7 @@ def test_gate_approve_fans_out_to_curation(client) -> None:
     assert r.status_code == 200, r.text
 
     body = client.get(f"/api/projects/{pid}").json()
-    # approval fans out and pauses at Gate 2 (sub-plan 04), not straight to done.
+    # approval fans out and pauses at Gate 2, not straight to done.
     assert body["state"] == "awaiting_curation"
     assert body["verbal_identity"] is not None
     assert body["creative_brief"] is not None

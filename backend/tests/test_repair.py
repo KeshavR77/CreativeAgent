@@ -1,4 +1,4 @@
-"""Structured-output repair-loop tests (Stage 03, §8.4/§16).
+"""Structured-output repair-loop tests.
 
 Contract: parse the model's raw output; on failure make ONE repair attempt that
 strips ``` fences and re-parses; a second failure raises `AgentOutputError`

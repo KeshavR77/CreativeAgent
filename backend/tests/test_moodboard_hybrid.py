@@ -1,4 +1,4 @@
-"""Hybrid moodboard service tests (Stage 05, §8.7/§16).
+"""Hybrid moodboard service tests.
 
 Hybrid by construction (generated + sourced within rounding); a downed lane
 redirects its share to the live one to reach `size`; both down → all placeholders;

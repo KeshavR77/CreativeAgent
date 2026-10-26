@@ -1,5 +1,5 @@
 /**
- * Export (§14.3) — the handoff surface. For each finalized ConceptPackage:
+ * Export — the handoff surface. For each finalized ConceptPackage:
  *   - PackageDoc: strategy, big idea, a Sketches section (thumbnails + an
  *     "AI-generated" note), art direction, and the mixed-provenance moodboard
  *     (each tile keeps its provenance tag).

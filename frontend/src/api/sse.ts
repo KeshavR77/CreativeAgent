@@ -7,7 +7,7 @@
  *     (re-delivered during backfill) are dropped rather than re-applied.
  *
  * The frontend never talks to any model/image/search provider — only this REST/SSE
- * surface (§2). All backend event types are addressed here as named SSE events.
+ * surface. All backend event types are addressed here as named SSE events.
  */
 import type { EventType, SseEvent } from './types';
 

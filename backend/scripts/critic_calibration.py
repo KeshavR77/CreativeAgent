@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Critic calibration harness CLI (Stage 10, §10 stretch).
+"""Critic calibration harness CLI.
 
 Drives N runs to Gate 2, collects the critic's rubric scores + verdicts, appends
 them to an accumulating JSONL dataset, then reports score distributions per
@@ -9,11 +9,12 @@ evidence for tuning the ship/revise/kill thresholds.
   python backend/scripts/critic_calibration.py --n 5           # add 5 runs, summarize
   python backend/scripts/critic_calibration.py --summarize-only # just summarize the dataset
 
-Keyless it uses the mock ideator + mock critic (still exercises the pipeline);
-with real keys the accumulated dataset reflects the real generator/critic pairing.
+Keyless it uses the mock ideator + mock critic, whose scores are deterministic
+fixtures — a keyless dataset says nothing about a real critic's calibration. With
+real keys the accumulated dataset reflects the real generator/critic pairing.
 
-Deferred to Keshav (§20): the persisted data-collection FORMAT + calibration
-data-collection design. The JSONL store here is a working default only.
+Unresolved: the persisted data-collection format. The JSONL store here is a
+working default only.
 """
 
 from __future__ import annotations

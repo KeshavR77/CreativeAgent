@@ -100,7 +100,7 @@ export const useProjectStore = create<ProjectState>((set) => ({
     const p = health.providers;
     // The backend reports each provider as "real" or "mock" (backend/app/config.py
     // health_snapshot). "mocked" == the REASONING engine is on the mock: chat is
-    // what makes outputs real or illustrative. Conceptial/search/embeddings are
+    // what makes outputs real or illustrative. Ideator/search/embeddings are
     // optional lanes with truthful per-artifact fallbacks (brain labels,
     // provenance tags), so they don't flip the whole-run banner.
     const mocked = p.claude !== 'real';

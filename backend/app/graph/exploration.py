@@ -1,12 +1,12 @@
-"""Fan-out exploration, critic, divergence, refine & package (Stage 04, §10.7/§10.8/§11).
+"""Fan-out exploration, critic, divergence, refine & package.
 
 Each seeded territory is explored in parallel (idea -> spec -> critic) via `Send`;
 the branches fan in at `divergence_node`, which scores how distinct the surviving
 directions are. `refine`/`package` turn promoted directions into ConceptPackages.
 
 Inner helpers (`ideate_one`, `build_spec`, `critique_one`) are reused by the
-curation ops (fork/merge/regenerate/recritique). Sketches/moodboards are stubbed
-empty here and land in sub-plan 05.
+curation ops (fork/merge/regenerate/recritique). `build_spec` stubs the moodboard
+empty; `attach_visuals` fills in sketches and the hybrid moodboard.
 """
 
 from __future__ import annotations
@@ -32,8 +32,8 @@ from app.models.artifacts import (
 )
 from app.models.events import EventType
 from app.models.state import GraphState
-from app.services.conceptial import ConceptialUnavailable
-from app.services.conceptial import generate as conceptial_generate
+from app.services.ideator import IdeatorUnavailable
+from app.services.ideator import generate as ideator_generate
 from app.services.divergence import divergence_report
 from app.services.mock_chat import MockChatModel
 from app.services.models import generate_structured, get_chat_model, last_usage, reset_usage
@@ -74,7 +74,7 @@ def _model_name(model) -> str:
 
 
 def compute_verdict(score: CritiqueScore) -> str:
-    """Verdict is computed in code (§10.8), never taken from the model."""
+    """Verdict is computed in code, never taken from the model."""
     avg = (
         score.distinctiveness
         + score.strategic_fit
@@ -93,21 +93,22 @@ def compute_verdict(score: CritiqueScore) -> str:
 # reusable inner steps                                                         #
 # --------------------------------------------------------------------------- #
 def ideate_one(project_id: str, territory: Territory, *, lens_tweak: str | None = None) -> tuple[str, str]:
-    """Return (big_idea, brain). Conceptial when configured, else claude_high_temp
-    / mock — ``brain`` is recorded truthfully (never "conceptial" for a fallback)."""
+    """Return (big_idea, brain). The external ideator when configured, else
+    claude_high_temp / mock — ``brain`` is recorded truthfully (never
+    "external_ideator" for a fallback)."""
     settings = get_settings()
     lens = territory.lens if not lens_tweak else f"{territory.lens} — {lens_tweak}"
-    if settings.conceptial_mode == "real":
+    if settings.ideator_mode == "real":
         try:
-            ideas = conceptial_generate(
+            ideas = ideator_generate(
                 creative_brief=f"{territory.label} — {lens}", territory=territory, n_ideas=1
             )
-            # Guard the per-idea key too: Conceptial key drift ("concept" vs
+            # Guard the per-idea key too: ideator key drift ("concept" vs
             # "big_idea") must fall through to the LLM ideator, not raise a
             # KeyError that fails the whole territory.
             if ideas and (idea := ideas[0].get("big_idea")):
-                return idea, "conceptial"
-        except ConceptialUnavailable:
+                return idea, "external_ideator"
+        except IdeatorUnavailable:
             pass
     # LLM ideator (any provider get_chat_model resolves to): run the generator hot.
     model = get_chat_model("ideator", project_id=project_id, temperature=1.0, seed_extra=territory.label)
@@ -120,15 +121,15 @@ def ideate_one(project_id: str, territory: Territory, *, lens_tweak: str | None 
     return big_idea, brain
 
 
-# Total brainstorm rounds in the automatic loop (conceptial mode): the first
+# Total brainstorm rounds in the automatic loop (auto mode): the first
 # idea plus up to (ROUNDS - 1) critique-informed regenerations.
 _IDEATION_ROUNDS = 2
 
 
 def ideate_iterative(project_id: str, territory: Territory) -> tuple[str, str]:
-    """Automatic brainstorm⇄critique loop (conceptial mode).
+    """Automatic brainstorm⇄critique loop (auto mode).
 
-    The brainstormer (Conceptial when configured, else the hot LLM ideator)
+    The brainstormer (the external ideator when configured, else the hot LLM one)
     proposes; the independent critic judges; a weak idea (< IDEA_SCORE_BAR) is
     regenerated with the critique folded into the lens. The critic and the
     brainstormer switch back and forth without any manual export/import."""
@@ -161,7 +162,7 @@ def build_spec(project_id: str, territory: Territory, big_idea: str) -> tuple[Ar
         layout_notes=spec.layout_notes,
         palette=spec.palette,
         typography=spec.typography,
-        moodboard=[],  # sketches/moodboard land in sub-plan 05
+        moodboard=[],  # filled in by attach_visuals
     )
     copy = generate_structured(model, prompt, CopyDeck)
     return art, copy
@@ -180,7 +181,7 @@ def critique_one(project_id: str, direction: Direction) -> CritiqueScore:
 # graph nodes                                                                  #
 # --------------------------------------------------------------------------- #
 def attach_visuals(project_id: str, direction: Direction) -> Direction:
-    """Generate concept sketches + a hybrid moodboard for a direction (§10.7 steps
+    """Generate concept sketches + a hybrid moodboard for a direction (steps
     3-4). Reused by fork/merge so every direction carries visuals; keyless these
     resolve to placeholders. Every image is provenance-complete by construction."""
     from app.services import moodboard as moodboard_svc
@@ -272,7 +273,7 @@ def explore_territory(state: GraphState) -> dict:
                 # Manual mode: the idea was brainstormed externally, critiqued at
                 # the ideation gate, and chosen. Recorded truthfully as external.
                 big_idea, brain = external_idea, "external"
-            elif mode == "conceptial":
+            elif mode == "auto":
                 big_idea, brain = ideate_iterative(project_id, territory)
             else:
                 big_idea, brain = ideate_one(project_id, territory)
@@ -288,7 +289,7 @@ def explore_territory(state: GraphState) -> dict:
             )
             critique = critique_one(project_id, direction)
             direction = direction.model_copy(update={"critique": critique})
-            direction = attach_visuals(project_id, direction)  # sketches + hybrid moodboard (§10.7 steps 3-4)
+            direction = attach_visuals(project_id, direction)  # sketches + hybrid moodboard
             writer({"type": EventType.direction_created.value, "direction_id": direction.id, "brain": brain})
             # real chat-token cost for this branch's ideate/spec/copy/critique calls
             # (accumulated in the per-branch context; 0 for the mock).
@@ -316,7 +317,7 @@ def explore_territory(state: GraphState) -> dict:
 
 def divergence_node(state: GraphState) -> dict:
     """Fan-in: score how distinct the active directions are. Writes an overall
-    {min, mean, warning} and a per-direction divergence_score. Text-only (§11)."""
+    {min, mean, warning} and a per-direction divergence_score. Text-only."""
     writer = get_stream_writer()
     directions = state.get("directions", [])
     active = [d for d in directions if d.status not in ("killed", "merged_away")]
@@ -338,10 +339,10 @@ def divergence_node(state: GraphState) -> dict:
 
 
 def refine(state: GraphState) -> dict:
-    """Light polish pass over promoted directions before packaging (§10.10).
+    """Light polish pass over promoted directions before packaging.
 
     On mocks this is a no-op beyond an observability event; real refinement lands
-    with real providers (sub-plan 07)."""
+    with real providers."""
     writer = get_stream_writer()
     writer({"type": EventType.agent_started.value, "agent": "refine"})
     writer({"type": EventType.agent_completed.value, "agent": "refine"})
@@ -349,7 +350,7 @@ def refine(state: GraphState) -> dict:
 
 
 def package(state: GraphState) -> dict:
-    """Build a ConceptPackage per promoted direction (§10.10) -> END."""
+    """Build a ConceptPackage per promoted direction -> END."""
     writer = get_stream_writer()
     strategy = state.get("strategy")
     verbal = state.get("verbal_identity")

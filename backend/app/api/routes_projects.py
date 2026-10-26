@@ -1,4 +1,4 @@
-"""Project lifecycle API (§13, sub-plan 03).
+"""Project lifecycle API.
 
 Create -> start -> Gate 1 (approve/reject), plus list/detail projections. All
 JSON; failures raise ``HTTPException`` which ``app.main`` renders as the
@@ -28,7 +28,7 @@ router = APIRouter(prefix="/api")
 
 
 # How ideas get produced for the explore fan-out (see graph/gates.ideation_gate).
-IDEATION_MODES = ("internal", "manual", "conceptial")
+IDEATION_MODES = ("internal", "manual", "auto")
 
 
 class CreateProjectBody(BaseModel):

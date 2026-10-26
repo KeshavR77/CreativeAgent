@@ -1,5 +1,5 @@
 # AI Creative Agency Platform — root Makefile
-# Repo root: /Users/chetanraghavan/Desktop/Projects/CreativeAgent
+# Run from the repo root.
 # Conventions: backend venv at backend/.venv (uv), frontend in frontend/ (npm).
 
 .PHONY: setup dev-backend dev-frontend test e2e fmt

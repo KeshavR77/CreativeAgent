@@ -1,5 +1,5 @@
 /**
- * Cockpit (§14.2) — the steering surface.
+ * Cockpit — the steering surface.
  *   - Gate 1 (awaiting_strategy_approval): StrategyGatePanel — approve with inline
  *     edits, or reject with notes.
  *   - Gate 2 (awaiting_curation): a DirectionCard per direction (editable fields,

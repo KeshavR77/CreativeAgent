@@ -1,1 +1,1 @@
-"""prompts package (Stage 01: empty; later stages fill it)."""
+"""prompts package."""

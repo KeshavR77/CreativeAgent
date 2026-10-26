@@ -1,4 +1,4 @@
-"""Provider-resolution unit tests (Stage 01, §3/§7).
+"""Provider-resolution unit tests.
 
 Each real-flip is asserted independently via monkeypatched env vars. Config
 must tolerate a fully empty environment and never raise on missing keys.
@@ -32,7 +32,7 @@ def test_empty_env_imports_without_raising(clean_env) -> None:
     snap = config.get_settings().health_snapshot()
     assert snap["status"] == "ok"
     assert snap["providers"]["claude"] == "mock"
-    assert snap["providers"]["conceptial"] == "mock"
+    assert snap["providers"]["ideator"] == "mock"
     assert snap["providers"]["search"] == "mock"
     assert snap["providers"]["embeddings"] == "mock"
     assert snap["image_gen"] == {"enabled": False, "provider": None}
@@ -45,9 +45,9 @@ def test_claude_flips_real(clean_env) -> None:
     assert _snapshot()["providers"]["claude"] == "real"
 
 
-def test_conceptial_flips_real(clean_env) -> None:
-    clean_env.setenv("CONCEPTIAL_BASE_URL", "http://localhost:9999")
-    assert _snapshot()["providers"]["conceptial"] == "real"
+def test_ideator_flips_real(clean_env) -> None:
+    clean_env.setenv("IDEATOR_BASE_URL", "http://localhost:9999")
+    assert _snapshot()["providers"]["ideator"] == "real"
 
 
 def test_search_flips_real(clean_env) -> None:

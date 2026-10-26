@@ -9,7 +9,7 @@ current strategy for review, and routes on the human decision:
   * reject  -> back to ``strategize`` carrying the reviewer's notes.
 
 ``ideation_gate`` sits between ``seed`` and the explore fan-out. In internal /
-conceptial modes it routes straight through. In manual mode it pauses so the
+auto modes it routes straight through. In manual mode it pauses so the
 operator can take the ideation packet to an external creative LLM/agent, paste
 the brainstormed ideas back (op ``submit`` — each idea is critiqued in-house and
 the gate re-interrupts so the operator can iterate), and finally ``proceed`` —
@@ -40,7 +40,7 @@ def strategy_gate(state: GraphState) -> Command:
         update: dict = {"edited_by_human": bool(edits)}
         if edits and strategy is not None:
             # Re-validate the merged strategy so an invalid inline edit can never
-            # enter state (provenance/validation-at-the-boundary, §02). The API
+            # enter state (provenance/validation-at-the-boundary). The API
             # rejects bad edits with 422 first; this is defense-in-depth.
             update["strategy"] = type(strategy).model_validate(
                 {**strategy.model_dump(), **edits}

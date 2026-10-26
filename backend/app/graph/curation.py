@@ -1,4 +1,4 @@
-"""Gate 2 — the curation gate and its full op table (§9.4/§12.2).
+"""Gate 2 — the curation gate and its full op table.
 
 ``curation_gate`` interrupts (first statement) surfacing the directions +
 divergence, then routes on the operator's op. Every op is applied inline after
@@ -234,7 +234,7 @@ def _merge(project_id: str, directions: list, op: dict) -> Command:
     # Start from the first parent, then apply each GRANULAR field choice: every
     # editable field (dotted, e.g. copy.headline / art_direction.imagery_direction)
     # may be sourced from a different parent per `field_choices`. (moodboard is
-    # regenerated fresh below per §10.9, so any moodboard choice is moot.)
+    # regenerated fresh below per, so any moodboard choice is moot.)
     merged = base.model_copy(
         update={
             "id": merged_id,
@@ -272,7 +272,7 @@ def _finalize(directions: list, op: dict) -> Command:
 
 
 # --------------------------------------------------------------------------- #
-# visual regeneration ops (no critique/divergence effect — §10.9)             #
+# visual regeneration ops (no critique/divergence effect —) #
 # --------------------------------------------------------------------------- #
 def _regenerate_sketch(project_id: str, directions: list, op: dict) -> Command:
     from app.services import sketches as sketch_svc

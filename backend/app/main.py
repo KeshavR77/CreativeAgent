@@ -1,7 +1,7 @@
-"""FastAPI application entrypoint (Stage 01 scaffold + Stage 03 wiring).
+"""FastAPI application entrypoint.
 
-Exposes ``app`` and ``GET /api/health`` (Stage 01). The lifespan (Stage 03,
-sub-plan 03) builds the durable stores + the LangGraph checkpointer and a
+Exposes ``app`` and ``GET /api/health``. The lifespan builds the durable
+stores + the LangGraph checkpointer and a
 ``RunManager``, stashing them on ``app.state`` for the project/SSE routers.
 
 Everything still boots with ZERO provider keys: storage is local SQLite, the
@@ -59,7 +59,7 @@ async def lifespan(app: FastAPI):
         app.state.pending_briefs = {}
         app.state.pending_modes = {}  # project_id -> ideation_mode chosen at create
 
-        # Boot recovery (§9.5): re-drive any run left mid-flight by a previous
+        # Boot recovery: re-drive any run left mid-flight by a previous
         # process from its last checkpoint. No-op on a clean start.
         await run_manager.resume_all()
 
@@ -84,7 +84,7 @@ async def _http_exception_handler(_: Request, exc: HTTPException) -> JSONRespons
 
 @app.get("/api/health")
 def health() -> dict:
-    """Return the resolved provider health snapshot (contract §4)."""
+    """Return the resolved provider health snapshot."""
     return get_settings().health_snapshot()
 
 
@@ -100,7 +100,7 @@ app.include_router(directions_router)
 app.include_router(export_router)
 app.include_router(events_router)
 
-# Serve generated/placeholder images (sub-plan 05); path matches ImageRef.url ("/generated/...").
+# Serve generated/placeholder images; path matches ImageRef.url ("/generated/...").
 from fastapi.staticfiles import StaticFiles  # noqa: E402
 
 GENERATED_DIR.mkdir(parents=True, exist_ok=True)

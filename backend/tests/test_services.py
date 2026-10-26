@@ -1,4 +1,4 @@
-"""Mock model + search service tests (Stage 03, §8.1/§8.2/§8.5/§16).
+"""Mock model + search service tests.
 
 Keyless: `get_chat_model` returns a deterministic `MockChatModel`; structured
 output yields valid, seed-deterministic artifacts; search is backed by the

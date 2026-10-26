@@ -1,4 +1,4 @@
-"""RunManager — drives graph runs and projects durable state (§12, sub-plan 03).
+"""RunManager — drives graph runs and projects durable state.
 
 Owns the compiled graph and, per project, an ``asyncio.Task`` + ``asyncio.Lock``
 so a run and its resume never interleave. ``start``/``resume`` spawn a task that

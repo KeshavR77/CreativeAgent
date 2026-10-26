@@ -1,4 +1,4 @@
-"""Single-field regeneration tests (Stage 04, §12.2/§16).
+"""Single-field regeneration tests.
 
 Regenerating one field marks the critique stale and recomputes divergence ONLY
 when the regenerated field is a divergence field; a non-editable field is a no-op.

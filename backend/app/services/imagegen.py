@@ -1,4 +1,4 @@
-"""Image generation lane (§8.6).
+"""Image generation lane.
 
 `generate(prompts)` returns one ``kind="generated"`` ImageRef per prompt. The
 mock writes placeholder PNG bytes to ``data/generated/{project_id}/{direction_id}/
@@ -6,7 +6,8 @@ mock writes placeholder PNG bytes to ``data/generated/{project_id}/{direction_id
 Every ref carries full generated provenance (``gen_model`` + exact ``gen_prompt``
 so regeneration is 1:1). Disabled (no ``IMAGE_GEN_PROVIDER``) → ``ImageGenUnavailable``.
 
-Real fal/Replicate/OpenAI calls land in sub-plan 07; the interface is stable.
+Real fal / Replicate / OpenAI / z.ai adapters are implemented below, selected by
+``IMAGE_GEN_PROVIDER``.
 """
 
 from __future__ import annotations

@@ -1,10 +1,13 @@
-"""A/B divergence harness (Stage 10, §10 stretch).
+"""A/B divergence harness.
 
-Measures the product's core claim — that Conceptial ideation yields a MORE
-divergent set of directions than the plain-Claude (``claude_high_temp``)
-baseline — using the PRODUCTION divergence metric verbatim
-(``app.services.divergence.divergence_report``), never a forked copy. This module
-is pure aggregation + a graph-driving helper; the runnable CLI is
+Tests — does not assert — the hypothesis that a dedicated external ideator yields
+a more divergent set of directions than the plain-LLM (``claude_high_temp``)
+baseline. Uses the PRODUCTION divergence metric verbatim
+(``app.services.divergence.divergence_report``), never a forked copy, so the
+numbers it reports are the same ones the product computes. Whichever way a run
+comes out is the answer; no outcome is presumed here.
+
+This module is pure aggregation + a graph-driving helper; the runnable CLI is
 ``scripts/ab_divergence.py``.
 """
 
@@ -16,7 +19,7 @@ from app.services.divergence import active_directions, divergence_report  # prod
 
 # Arm names == the ``brain`` each ideator stamps on its directions, so a run's
 # recorded brains can be checked against the arm it was meant to exercise.
-ARM_CONCEPTIAL = "conceptial"
+ARM_IDEATOR = "external_ideator"
 ARM_CLAUDE = "claude_high_temp"
 ARM_MOCK = "mock"
 
@@ -81,15 +84,15 @@ def summarize_arm(arm: str, records) -> ArmSummary:
 
 def compare(records) -> dict:
     """JSON-serializable comparison over every arm present, plus a treatment-vs-
-    baseline verdict (Conceptial vs claude_high_temp) when both arms ran."""
+    baseline verdict (external ideator vs claude_high_temp) when both arms ran."""
     records = list(records)
     arms = sorted({r.arm for r in records})
     summaries = {a: summarize_arm(a, records) for a in arms}
     out: dict = {"arms": {a: asdict(s) for a, s in summaries.items()}}
-    treatment, baseline = summaries.get(ARM_CONCEPTIAL), summaries.get(ARM_CLAUDE)
+    treatment, baseline = summaries.get(ARM_IDEATOR), summaries.get(ARM_CLAUDE)
     if treatment and baseline:
         out["verdict"] = {
-            "treatment": ARM_CONCEPTIAL,
+            "treatment": ARM_IDEATOR,
             "baseline": ARM_CLAUDE,
             "mean_divergence_delta": treatment.mean_mean - baseline.mean_mean,
             "min_divergence_delta": treatment.mean_min - baseline.mean_min,

@@ -1,8 +1,8 @@
-"""Search service (§8.1, Tavily interface).
+"""Search service (Tavily interface).
 
 Keyless (no `TAVILY_API_KEY`) it is backed by the bundled `mock_search_corpus.json`,
-returning deterministic `SourceRef`s ranked by term overlap. The real Tavily
-client lands in sub-plan 07; the interface is stable so callers never change.
+returning deterministic `SourceRef`s ranked by term overlap. With the key set it
+calls Tavily; the interface is identical either way so callers never change.
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ from app.models.artifacts import SourceRef
 
 logger = logging.getLogger(__name__)
 
-# Truncate fetched web text before it enters graph state (never full pages, §5/§19).
+# Truncate fetched web text before it enters graph state (never full pages).
 _MAX_SNIPPET_CHARS = 500
 
 _CORPUS_PATH = Path(__file__).resolve().parent.parent / "resources" / "mock_search_corpus.json"
@@ -51,7 +51,7 @@ def _mock_search(query: str, k: int) -> list[SourceRef]:
 
 def tavily_to_sources(payload: dict, query: str, k: int) -> list[SourceRef]:
     """Map a Tavily /search response to SourceRefs, truncating fetched text so no
-    full web page enters state (§19)."""
+    full web page enters state."""
     sources: list[SourceRef] = []
     for result in payload.get("results", [])[:k]:
         sources.append(
@@ -82,7 +82,7 @@ def _real_search(query: str, k: int, *, transport: httpx.BaseTransport | None = 
         resp.raise_for_status()
         return tavily_to_sources(resp.json(), query, k)
     except (httpx.HTTPError, ValueError) as exc:
-        # Degrade gracefully (§ hardening): a failing/slow/malformed Tavily must not
+        # Degrade gracefully: a failing/slow/malformed Tavily must not
         # fail the run — fall back to the deterministic mock corpus and keep going.
         logger.warning("Tavily search failed (%s); falling back to mock corpus", exc)
         return _mock_search(query, k)

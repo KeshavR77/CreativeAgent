@@ -1,10 +1,10 @@
-"""Deterministic mock chat model (§8.2).
+"""Deterministic mock chat model.
 
 `MockChatModel` stands in for a real Claude model when `ANTHROPIC_API_KEY` is
 empty (the keyless-first default). Output is deterministic — seeded by the
 model's `seed` (project_id + role + temperature) plus the requested schema — so
 mock runs are reproducible and later develop measurable divergence once a
-territory label enters the seed (sub-plan 04).
+territory label enters the seed.
 
 Structured output is produced by `build_fixture`, a generic, validator-respecting
 fixture generator over any Pydantic model. This keeps the mock schema-aware

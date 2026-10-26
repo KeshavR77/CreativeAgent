@@ -1,6 +1,6 @@
 /**
- * DirectionCard — the per-direction steering surface in the Cockpit (§14.2).
- * Shows the territory chip and brain badge; an EditableField for every §6.1
+ * DirectionCard — the per-direction steering surface in the Cockpit.
+ * Shows the territory chip and brain badge; an EditableField for every
  * editable field; the DivergenceBadge; the CritiquePanel with a StaleCritiqueBadge
  * (raised only when critique_stale — visual regen never stales a critique);
  * candidate names with an UnscreenedBadge; the SketchGrid and MoodboardGrid (each
@@ -35,7 +35,7 @@ interface DirectionCardProps {
   mergeSelected?: boolean;
 }
 
-/** Read a dotted §6.1 editable field off a Direction. */
+/** Read a dotted editable field off a Direction. */
 function readField(direction: Direction, field: string): FieldValue {
   switch (field) {
     case 'big_idea':
@@ -187,7 +187,7 @@ export function DirectionCard({
         </div>
       ) : null}
 
-      {/* editable fields — inline edit + single-field regenerate (§19: coarse
+      {/* editable fields — inline edit + single-field regenerate (coarse
           control is a product violation; single-field regen is required) */}
       <div className="grid grid-cols-1 gap-0">
         {EDITABLE_FIELDS.map((field) => (

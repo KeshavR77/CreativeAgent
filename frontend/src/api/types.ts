@@ -1,7 +1,7 @@
 /**
  * API/SSE type contracts — a 1:1 mirror of the backend Pydantic models.
  *
- * SAME-COMMIT RULE (plans/08 §19 trap): the field names below must not drift
+ * SAME-COMMIT RULE (trap): the field names below must not drift
  * from the backend. They are transcribed verbatim from:
  *   - backend/app/models/artifacts.py  (ImageRef, Direction, ConceptPackage, …)
  *   - backend/app/models/views.py       (ProjectSummary, ProjectView, EventOut)
@@ -16,7 +16,7 @@
 export type ImageKind = 'generated' | 'sourced' | 'placeholder';
 export type Verdict = 'ship' | 'revise' | 'kill';
 export type DirectionStatus = 'draft' | 'promoted' | 'killed' | 'merged_away';
-export type Brain = string; // provider label, e.g. 'conceptial' | 'claude_high_temp' | 'mock' | 'glm'
+export type Brain = string; // provider label, e.g. 'external_ideator' | 'claude_high_temp' | 'mock' | 'glm'
 
 // backend/app/models/artifacts.py :: SourceRef
 export interface SourceRef {
@@ -235,7 +235,7 @@ export interface ProjectView extends ProjectSummary {
 }
 
 // backend/app/api/routes_projects.py :: IDEATION_MODES
-export type IdeationMode = 'internal' | 'manual' | 'conceptial';
+export type IdeationMode = 'internal' | 'manual' | 'auto';
 
 // backend/app/models/artifacts.py :: ResearchDossier (summary view; item shapes
 // kept loose — the UI only reads `summary` and counts).
@@ -394,7 +394,7 @@ export interface HealthSnapshot {
   status: string;
   providers: {
     claude: string;
-    conceptial: string;
+    ideator: string;
     search: string;
     embeddings: string;
   };
