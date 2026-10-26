@@ -83,8 +83,12 @@ class Settings(BaseSettings):
     GENERATOR_CRITIC_MODEL: str = "glm-4.5-air"  # critic model id (MUST differ from the generator)
 
     # --- External ideator ---
+    # Points at any steered-generation server exposing POST /generate. Such a
+    # server often has no built-in auth; IDEATOR_API_KEY is only sent (as Bearer)
+    # when set, for callers fronted by an authenticating proxy.
     IDEATOR_BASE_URL: str | None = None
     IDEATOR_API_KEY: str | None = None
+    IDEATOR_VARIANT: str | None = None  # steering variant name (unset -> server default)
     IDEATOR_FALLBACK: str = "claude_high_temp"
 
     # --- Search + embeddings ---

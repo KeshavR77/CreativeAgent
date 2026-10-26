@@ -36,7 +36,7 @@ from app.services.ideator import IdeatorUnavailable
 from app.services.ideator import generate as ideator_generate
 from app.services.divergence import divergence_report
 from app.services.mock_chat import MockChatModel
-from app.services.models import generate_structured, get_chat_model, last_usage, reset_usage
+from app.services.models import AgentOutputError, generate_structured, get_chat_model, last_usage, reset_usage
 from app.services.prompts import render_prompt
 
 
@@ -92,16 +92,90 @@ def compute_verdict(score: CritiqueScore) -> str:
 # --------------------------------------------------------------------------- #
 # reusable inner steps                                                         #
 # --------------------------------------------------------------------------- #
-def ideate_one(project_id: str, territory: Territory, *, lens_tweak: str | None = None) -> tuple[str, str]:
+def _attr(obj, name, default=""):
+    """Read a field off a pydantic artifact OR a raw dict (checkpoint may hand
+    back either)."""
+    if obj is None:
+        return default
+    if isinstance(obj, dict):
+        return obj.get(name, default)
+    return getattr(obj, name, default)
+
+
+def brief_context(state) -> str:
+    """Rich, on-brief grounding for the ideators — brand, brief, audience, the
+    RESEARCH findings (competitive landscape, audience insight, opportunity), and
+    the approved strategy. Ideas should come *from research and context*, not from
+    the territory label alone (which yields off-category or gimmicky output from a
+    steered model). A Send branch can't read accumulated state, so this string
+    travels in the branch payload."""
+    brief = state.get("brief")
+    research = state.get("research")
+    strategy = state.get("strategy")
+    cbrief = state.get("creative_brief")
+    lines: list[str] = []
+    brand = _attr(brief, "brand_name")
+    if brand:
+        lines.append(f"Brand: {brand}")
+    if brief is not None:
+        lines.append(f"Brief: {_attr(brief, 'brief')}")
+        aud = _attr(brief, "audience")
+        if aud:
+            lines.append(f"Audience: {aud}")
+        cons = _attr(brief, "constraints", []) or []
+        if cons:
+            lines.append("Constraints: " + "; ".join(cons))
+    if research is not None:
+        summary = _attr(research, "summary")
+        if summary:
+            lines.append(f"\nResearch — opportunity: {summary}")
+        comps = _attr(research, "competitors", []) or []
+        if comps:
+            lines.append("Competitive landscape (find the white space they leave open):")
+            for c in comps[:6]:
+                name = _attr(c, "name")
+                note = _attr(c, "note")
+                lines.append(f"- {name}: {note}")
+        notes = _attr(research, "audience_notes", []) or []
+        if notes:
+            lines.append("Audience insight:")
+            for n in notes[:5]:
+                lines.append(f"- {_attr(n, 'insight')}")
+    if strategy is not None:
+        lines.append(f"\nApproved positioning: {_attr(strategy, 'positioning')}")
+        lines.append(f"Key message: {_attr(strategy, 'key_message')}")
+        pillars = _attr(strategy, "pillars", []) or []
+        if pillars:
+            lines.append("Strategic pillars: " + "; ".join(pillars))
+    if cbrief is not None:
+        obj = _attr(cbrief, "objective")
+        if obj:
+            lines.append(f"Creative objective: {obj}")
+        mand = _attr(cbrief, "mandatories", []) or []
+        if mand:
+            lines.append("Mandatories: " + "; ".join(mand))
+    return "\n".join(lines)
+
+
+def ideate_one(
+    project_id: str, territory: Territory, *, lens_tweak: str | None = None, brief_context: str = ""
+) -> tuple[str, str]:
     """Return (big_idea, brain). The external ideator when configured, else
     claude_high_temp / mock — ``brain`` is recorded truthfully (never
-    "external_ideator" for a fallback)."""
+    "external_ideator" for a fallback).
+
+    ``brief_context`` grounds the ideator in the real brand/brief/strategy so ideas
+    stay on-category; without it a steered model riffs on the territory label alone."""
     settings = get_settings()
     lens = territory.lens if not lens_tweak else f"{territory.lens} — {lens_tweak}"
     if settings.ideator_mode == "real":
         try:
+            # Hand the ideator the actual brief + strategy, not just the label.
+            grounding = f"{brief_context}\n\n" if brief_context else ""
             ideas = ideator_generate(
-                creative_brief=f"{territory.label} — {lens}", territory=territory, n_ideas=1
+                creative_brief=f"{grounding}Creative territory: {territory.label} — {lens}",
+                territory=territory,
+                n_ideas=1,
             )
             # Guard the per-idea key too: ideator key drift ("concept" vs
             # "big_idea") must fall through to the LLM ideator, not raise a
@@ -112,7 +186,7 @@ def ideate_one(project_id: str, territory: Territory, *, lens_tweak: str | None 
             pass
     # LLM ideator (any provider get_chat_model resolves to): run the generator hot.
     model = get_chat_model("ideator", project_id=project_id, temperature=1.0, seed_extra=territory.label)
-    prompt = render_prompt("idea", territory=territory.label, lens=lens)
+    prompt = render_prompt("idea", territory=territory.label, lens=lens, brief_context=brief_context)
     big_idea = generate_structured(model, prompt, IdeaResult).big_idea
     # brain reflects the ACTUAL ideator, keyed on the resolved model (provider-
     # agnostic): the mock, or the configured real-LLM label IDEATOR_FALLBACK — set
@@ -126,35 +200,55 @@ def ideate_one(project_id: str, territory: Territory, *, lens_tweak: str | None 
 _IDEATION_ROUNDS = 2
 
 
-def ideate_iterative(project_id: str, territory: Territory) -> tuple[str, str]:
-    """Automatic brainstorm⇄critique loop (auto mode).
+def _develop_seed(project_id: str, territory: Territory, seed: str, brief_context: str) -> str:
+    """Develop a raw ideator spark into a substantive, research-grounded big idea.
 
-    The brainstormer (the external ideator when configured, else the hot LLM one)
-    proposes; the independent critic judges; a weak idea (< IDEA_SCORE_BAR) is
-    regenerated with the critique folded into the lens. The critic and the
-    brainstormer switch back and forth without any manual export/import."""
+    A creativity-steered ideator is good at divergent sparks but tends toward
+    gimmicky phrasing/coinages. The strong reasoning model develops the spark —
+    keeping any genuine angle, grounding it in the research + competitive white
+    space, and stripping the gimmick — so the idea is good, not merely novel."""
+    model = get_chat_model("developer", project_id=project_id, temperature=0.6, seed_extra=territory.label)
+    prompt = render_prompt(
+        "develop", brief_context=brief_context, territory=territory.label, lens=territory.lens, seed=seed
+    )
+    return generate_structured(model, prompt, IdeaResult).big_idea
+
+
+def ideate_iterative(project_id: str, territory: Territory, *, brief_context: str = "") -> tuple[str, str]:
+    """Automatic brainstorm⇄develop⇄critique loop (auto mode).
+
+    The external ideator sparks a divergent seed; the reasoning model develops it
+    into a substantive, research-grounded idea; the independent critic judges; a
+    weak idea (< IDEA_SCORE_BAR) is resparked with the critique folded in. This
+    pairs the ideator's divergence with grounded substance. When no external
+    ideator is configured, ``ideate_one`` already returns a grounded LLM idea —
+    used as-is."""
     from app.services.ideation import IDEA_SCORE_BAR, critique_idea
 
-    big_idea, brain = ideate_one(project_id, territory)
+    seed, seed_brain = ideate_one(project_id, territory, brief_context=brief_context)
+    if seed_brain != "external_ideator":
+        return seed, seed_brain  # no real ideator spark — nothing to develop
+    big_idea = _develop_seed(project_id, territory, seed, brief_context)
     for _ in range(_IDEATION_ROUNDS - 1):
         review = critique_idea(project_id, territory.label, big_idea)
         if review.score >= IDEA_SCORE_BAR:
             break
-        big_idea, brain = ideate_one(
+        seed, _ = ideate_one(
             project_id,
             territory,
-            lens_tweak=(
-                "a previous idea was critiqued: "
-                f"{review.case_against} — produce a sharper idea that answers the critique"
-            ),
+            brief_context=brief_context,
+            lens_tweak=f"a previous idea was critiqued: {review.case_against} — spark a sharper angle",
         )
-    return big_idea, brain
+        big_idea = _develop_seed(project_id, territory, seed, brief_context)
+    return big_idea, "external_ideator+glm"  # ideator-sparked, reasoning-model-developed
 
 
-def build_spec(project_id: str, territory: Territory, big_idea: str) -> tuple[ArtDirectionSpec, CopyDeck]:
+def build_spec(
+    project_id: str, territory: Territory, big_idea: str, *, brief_context: str = ""
+) -> tuple[ArtDirectionSpec, CopyDeck]:
     """Produce the ArtDirectionSpec (moodboard stubbed empty) + CopyDeck."""
     model = get_chat_model("spec", project_id=project_id, temperature=0.7, seed_extra=territory.label)
-    prompt = render_prompt("spec", territory=territory.label, big_idea=big_idea)
+    prompt = render_prompt("spec", territory=territory.label, big_idea=big_idea, brief_context=brief_context)
     spec = generate_structured(model, prompt, SpecResult)
     art = ArtDirectionSpec(
         imagery_direction=spec.imagery_direction,
@@ -236,6 +330,7 @@ def route_to_territories(state: GraphState) -> list[Send]:
     project_id = state["project_id"]
     mode = state.get("ideation_mode") or "internal"
     ideas = best_idea_per_territory(state.get("ideation_reviews") or [])
+    ctx = brief_context(state)  # on-brief grounding for the ideators (Send is stateless)
     k = max(2, get_settings().K)
     return [
         Send(
@@ -246,6 +341,7 @@ def route_to_territories(state: GraphState) -> list[Send]:
                 "index": i,
                 "ideation_mode": mode,
                 "external_idea": ideas.get(territory.label),
+                "brief_context": ctx,
             },
         )
         for i, territory in enumerate(state.get("territories", [])[:k])
@@ -265,6 +361,7 @@ def explore_territory(state: GraphState) -> dict:
     index = int(state.get("index", 0) or 0)
     mode = state.get("ideation_mode") or "internal"
     external_idea = state.get("external_idea") or None
+    ctx = state.get("brief_context") or ""  # on-brief grounding from the Send payload
     writer({"type": EventType.agent_started.value, "agent": "explore", "territory": label})
     for attempt in range(_EXPLORE_ATTEMPTS):
         reset_usage()  # per-attempt, so a retry doesn't double-count tokens
@@ -274,10 +371,10 @@ def explore_territory(state: GraphState) -> dict:
                 # the ideation gate, and chosen. Recorded truthfully as external.
                 big_idea, brain = external_idea, "external"
             elif mode == "auto":
-                big_idea, brain = ideate_iterative(project_id, territory)
+                big_idea, brain = ideate_iterative(project_id, territory, brief_context=ctx)
             else:
-                big_idea, brain = ideate_one(project_id, territory)
-            art, copy = build_spec(project_id, territory, big_idea)
+                big_idea, brain = ideate_one(project_id, territory, brief_context=ctx)
+            art, copy = build_spec(project_id, territory, big_idea, brief_context=ctx)
             direction = Direction(
                 id=direction_id(project_id, f"{index}:{label}"),
                 territory=territory,
@@ -305,7 +402,11 @@ def explore_territory(state: GraphState) -> dict:
                 writer({"type": EventType.cost_recorded.value, **rec.model_dump()})
             return {"directions": [direction], "costs": costs}
         except Exception as exc:  # noqa: BLE001 - a failed territory must not kill the run
-            if _is_transient(exc) and attempt < _EXPLORE_ATTEMPTS - 1:
+            # Retry transport blips AND unparseable model output: GLM sometimes
+            # wraps JSON in prose the repair loop can't salvage; a fresh generation
+            # usually parses, so don't lose the whole branch to one bad response.
+            retryable = _is_transient(exc) or isinstance(exc, AgentOutputError)
+            if retryable and attempt < _EXPLORE_ATTEMPTS - 1:
                 time.sleep(2.0 * (attempt + 1))
                 continue
             writer(

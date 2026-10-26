@@ -102,18 +102,57 @@ def strip_code_fences(text: Any) -> str:
     return t.strip()
 
 
+def _extract_json_block(text: str) -> str | None:
+    """Pull the outermost JSON object/array out of surrounding prose.
+
+    GLM-style models often wrap the JSON in explanation ("Here is the ...: { ... }.
+    This captures ..."). Scan for the first ``{``/``[`` and return through its
+    matching close, respecting strings/escapes so braces inside strings don't fool
+    the matcher. Returns None if no balanced block is found."""
+    start = min((i for i in (text.find("{"), text.find("[")) if i != -1), default=-1)
+    if start == -1:
+        return None
+    open_ch = text[start]
+    close_ch = "}" if open_ch == "{" else "]"
+    depth = 0
+    in_str = False
+    esc = False
+    for i in range(start, len(text)):
+        ch = text[i]
+        if in_str:
+            if esc:
+                esc = False
+            elif ch == "\\":
+                esc = True
+            elif ch == '"':
+                in_str = False
+        elif ch == '"':
+            in_str = True
+        elif ch == open_ch:
+            depth += 1
+        elif ch == close_ch:
+            depth -= 1
+            if depth == 0:
+                return text[start : i + 1]
+    return None
+
+
 def parse_with_repair(raw_content: Any, schema: Type[T]) -> T:
-    """Parse `raw_content` into `schema`, repairing fenced JSON once. Accepts a
-    string or an Anthropic content-block list (normalized to text)."""
+    """Parse `raw_content` into `schema`, repairing progressively: raw, then with
+    code fences stripped, then by extracting the outermost JSON block from prose
+    (GLM often wraps JSON in explanation). Accepts a string or an Anthropic
+    content-block list (normalized to text)."""
     text = content_to_text(raw_content)
-    try:
-        return schema.model_validate_json(text)
-    except (ValidationError, ValueError):
-        pass
-    try:
-        return schema.model_validate_json(strip_code_fences(text))
-    except (ValidationError, ValueError) as exc:
-        raise AgentOutputError(f"could not parse {schema.__name__} output after repair") from exc
+    candidates = [text, strip_code_fences(text)]
+    block = _extract_json_block(text)
+    if block is not None:
+        candidates.append(block)
+    for candidate in candidates:
+        try:
+            return schema.model_validate_json(candidate)
+        except (ValidationError, ValueError):
+            continue
+    raise AgentOutputError(f"could not parse {schema.__name__} output after repair")
 
 
 def generate_structured(model: Any, messages: Any, schema: Type[T]) -> T:

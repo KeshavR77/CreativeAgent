@@ -100,6 +100,9 @@ def curation_gate(state: GraphState) -> Command:
         }
     )
     kind = op.get("op")
+    # On-brief grounding for any curation-time re-ideation (fork / regenerate),
+    # same context the explore fan-out uses — so regenerated ideas stay on-brief.
+    ctx = exploration.brief_context(state)
 
     if kind == "promote":
         return _set_status(directions, op["direction_id"], "promoted")
@@ -110,11 +113,11 @@ def curation_gate(state: GraphState) -> Command:
     if kind == "edit":
         return _apply_edit(directions, op)
     if kind == "regenerate_field":
-        return _regenerate_field(project_id, directions, op)
+        return _regenerate_field(project_id, directions, op, brief_context=ctx)
     if kind == "recritique":
         return _recritique(project_id, directions, op)
     if kind == "fork":
-        return _fork(project_id, directions, op)
+        return _fork(project_id, directions, op, brief_context=ctx)
     if kind == "merge":
         return _merge(project_id, directions, op)
     if kind == "regenerate_sketch":
@@ -163,14 +166,14 @@ def _apply_edit(directions: list, op: dict) -> Command:
     return Command(goto=_route_after_field_change(field), update={"directions": [updated]})
 
 
-def _regenerate_spec_field(project_id: str, d: Direction, field: str):
-    art, copy = exploration.build_spec(project_id, d.territory, d.big_idea)
+def _regenerate_spec_field(project_id: str, d: Direction, field: str, brief_context: str = ""):
+    art, copy = exploration.build_spec(project_id, d.territory, d.big_idea, brief_context=brief_context)
     source = {"copy": copy, "art_direction": art}
     parent, child = field.split(".", 1)
     return getattr(source[parent], child)
 
 
-def _regenerate_field(project_id: str, directions: list, op: dict) -> Command:
+def _regenerate_field(project_id: str, directions: list, op: dict, brief_context: str = "") -> Command:
     d = _by_id(directions, op["direction_id"])
     field = op.get("field", "")
     if d is None or field not in EDITABLE_FIELDS:
@@ -178,10 +181,12 @@ def _regenerate_field(project_id: str, directions: list, op: dict) -> Command:
     if field == "big_idea":
         # A regenerated big_idea may come from a different ideator — keep `brain`
         # truthful to the model that produced the value now on the card.
-        big_idea, brain = exploration.ideate_one(project_id, d.territory, lens_tweak="regenerate")
+        big_idea, brain = exploration.ideate_one(
+            project_id, d.territory, lens_tweak="regenerate", brief_context=brief_context
+        )
         updated = _set_field(d, field, big_idea).model_copy(update={"brain": brain})
     else:
-        updated = _set_field(d, field, _regenerate_spec_field(project_id, d, field))
+        updated = _set_field(d, field, _regenerate_spec_field(project_id, d, field, brief_context))
     _emit_updated(d.id, DirectionChange.regenerate_field)
     return Command(goto=_route_after_field_change(field), update={"directions": [updated]})
 
@@ -196,13 +201,15 @@ def _recritique(project_id: str, directions: list, op: dict) -> Command:
     return Command(goto=_DIVERGENCE, update={"directions": [updated]})
 
 
-def _fork(project_id: str, directions: list, op: dict) -> Command:
+def _fork(project_id: str, directions: list, op: dict, brief_context: str = "") -> Command:
     parent = _by_id(directions, op["direction_id"])
     if parent is None:
         return Command(goto=_GATE)
     lens_tweak = op.get("lens_tweak")
-    big_idea, brain = exploration.ideate_one(project_id, parent.territory, lens_tweak=lens_tweak)
-    art, copy = exploration.build_spec(project_id, parent.territory, big_idea)
+    big_idea, brain = exploration.ideate_one(
+        project_id, parent.territory, lens_tweak=lens_tweak, brief_context=brief_context
+    )
+    art, copy = exploration.build_spec(project_id, parent.territory, big_idea, brief_context=brief_context)
     child_id = exploration.direction_id(project_id, f"{parent.id}:fork:{lens_tweak or ''}")
     child = Direction(
         id=child_id,

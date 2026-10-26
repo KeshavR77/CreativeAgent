@@ -1,8 +1,9 @@
 """External ideator client tests.
 
 Keyless the client is unavailable (node falls back to claude_high_temp/mock). When
-configured it POSTs the structured body to ``/generate`` with Bearer auth — all
-exercised in-process via an httpx MockTransport (no network, no real keys).
+configured it POSTs one ``{prompt, seed}`` body per idea to ``/generate`` with Bearer
+auth (as a steered-generation server typically has none) — all exercised
+in-process via an httpx MockTransport (no network, no real keys).
 """
 
 from __future__ import annotations
@@ -20,23 +21,65 @@ def test_unavailable_when_keyless(clean_env) -> None:
         generate("a brief", {"label": "T", "lens": "l"})
 
 
-def test_generate_posts_structured_body_and_parses(clean_env) -> None:
+def test_generate_posts_prompt_and_parses_title_notes(clean_env) -> None:
     clean_env.setenv("IDEATOR_BASE_URL", "http://ideator.test")
     captured: dict = {}
 
     def handler(request: httpx.Request) -> httpx.Response:
         captured["url"] = str(request.url)
         captured["body"] = json.loads(request.content)
-        return httpx.Response(200, json={"ideas": [{"big_idea": "trace the seams", "notes": "bold"}]})
+        return httpx.Response(200, json={"text": "Title: trace the seams\nNotes: bold"})
 
     client = httpx.Client(base_url="http://ideator.test", transport=httpx.MockTransport(handler))
     ideas = generate("brief text", {"label": "Radical", "lens": "proof"}, n_ideas=1, client=client)
 
     assert ideas == [{"big_idea": "trace the seams", "notes": "bold"}]
     assert captured["url"].endswith("/generate")
-    assert captured["body"]["creative_brief"] == "brief text"
-    assert captured["body"]["territory"] == {"label": "Radical", "lens": "proof"}
-    assert captured["body"]["n_ideas"] == 1
+    assert captured["body"]["seed"] == 0
+    assert "brief text" in captured["body"]["prompt"]
+    assert "Radical" in captured["body"]["prompt"]
+    assert "proof" in captured["body"]["prompt"]
+
+
+def test_generate_n_ideas_issues_one_call_per_idea_with_distinct_seeds(clean_env) -> None:
+    clean_env.setenv("IDEATOR_BASE_URL", "http://ideator.test")
+    seeds_seen: list[int] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        body = json.loads(request.content)
+        seeds_seen.append(body["seed"])
+        return httpx.Response(200, json={"text": f"Title: idea {body['seed']}\nNotes: n"})
+
+    client = httpx.Client(base_url="http://ideator.test", transport=httpx.MockTransport(handler))
+    ideas = generate("brief", {"label": "T", "lens": "l"}, n_ideas=3, client=client)
+
+    assert seeds_seen == [0, 1, 2]
+    assert [i["big_idea"] for i in ideas] == ["idea 0", "idea 1", "idea 2"]
+
+
+def test_generate_forwards_configured_variant(clean_env) -> None:
+    clean_env.setenv("IDEATOR_BASE_URL", "http://ideator.test")
+    clean_env.setenv("IDEATOR_VARIANT", "bracket")
+    captured: dict = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = json.loads(request.content)
+        return httpx.Response(200, json={"text": "Title: x\nNotes: "})
+
+    client = httpx.Client(base_url="http://ideator.test", transport=httpx.MockTransport(handler))
+    generate("brief", {"label": "T", "lens": "l"}, client=client)
+    assert captured["body"]["variant"] == "bracket"
+
+
+def test_generate_falls_back_to_raw_text_when_unformatted(clean_env) -> None:
+    clean_env.setenv("IDEATOR_BASE_URL", "http://ideator.test")
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"text": "just a freeform completion"})
+
+    client = httpx.Client(base_url="http://ideator.test", transport=httpx.MockTransport(handler))
+    ideas = generate("brief", {"label": "T", "lens": "l"}, client=client)
+    assert ideas == [{"big_idea": "just a freeform completion", "notes": ""}]
 
 
 def test_bearer_auth_header_set_when_keyed(clean_env) -> None:
@@ -46,7 +89,7 @@ def test_bearer_auth_header_set_when_keyed(clean_env) -> None:
 
     def handler(request: httpx.Request) -> httpx.Response:
         seen["auth"] = request.headers.get("authorization")
-        return httpx.Response(200, json={"ideas": [{"big_idea": "x", "notes": ""}]})
+        return httpx.Response(200, json={"text": "Title: x\nNotes: "})
 
     # transport injection exercises the real client-construction path (auth header).
     generate("b", {"label": "T", "lens": "l"}, transport=httpx.MockTransport(handler))
@@ -59,7 +102,7 @@ def test_no_auth_header_without_key(clean_env) -> None:
 
     def handler(request: httpx.Request) -> httpx.Response:
         seen["auth"] = request.headers.get("authorization")
-        return httpx.Response(200, json={"ideas": [{"big_idea": "x", "notes": ""}]})
+        return httpx.Response(200, json={"text": "Title: x\nNotes: "})
 
     generate("b", {"label": "T", "lens": "l"}, transport=httpx.MockTransport(handler))
     assert seen["auth"] is None
@@ -83,10 +126,11 @@ def test_accepts_territory_object(clean_env) -> None:
 
     def handler(request: httpx.Request) -> httpx.Response:
         captured["body"] = json.loads(request.content)
-        return httpx.Response(200, json={"ideas": [{"big_idea": "y", "notes": ""}]})
+        return httpx.Response(200, json={"text": "Title: y\nNotes: "})
 
     generate("b", Territory(label="Transparency", lens="proof"), transport=httpx.MockTransport(handler))
-    assert captured["body"]["territory"] == {"label": "Transparency", "lens": "proof"}
+    assert "Transparency" in captured["body"]["prompt"]
+    assert "proof" in captured["body"]["prompt"]
 
 
 def test_ideate_falls_back_with_truthful_brain_when_ideator_fails(clean_env, monkeypatch) -> None:

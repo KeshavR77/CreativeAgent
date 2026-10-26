@@ -13,10 +13,12 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
+      // Backend runs on 8080 — 8000 is reserved for a locally-tunneled
+      // external ideator (see IDEATOR_BASE_URL in .env.example).
       // REST + SSE (SSE streams fine over the default http proxy).
-      '/api': { target: 'http://127.0.0.1:8000', changeOrigin: true },
+      '/api': { target: 'http://127.0.0.1:8080', changeOrigin: true },
       // Generated/placeholder images (ImageRef.url paths).
-      '/generated': { target: 'http://127.0.0.1:8000', changeOrigin: true },
+      '/generated': { target: 'http://127.0.0.1:8080', changeOrigin: true },
     },
   },
   test: {

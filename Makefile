@@ -12,8 +12,10 @@ setup:
 	cd frontend && npm install
 
 # Run the FastAPI backend with autoreload from the backend venv.
+# Port 8000 is reserved for a locally-tunneled external ideator (see
+# IDEATOR_BASE_URL in .env.example) — the backend runs on 8080 instead.
 dev-backend:
-	PYTHONPATH=backend backend/.venv/bin/uvicorn app.main:app --reload
+	PYTHONPATH=backend backend/.venv/bin/uvicorn app.main:app --reload --port 8080
 
 # Run the Vite dev server for the frontend.
 dev-frontend:
